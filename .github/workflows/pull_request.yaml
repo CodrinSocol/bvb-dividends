@@ -1,0 +1,56 @@
+name: CI PR Pipeline
+on:
+  pull_request:
+    branches:
+      - main
+
+# Cancel current execution if new commits re-trigger the pipeline.
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Client_Build:
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: client_jobs
+      cancel-in-progress: true
+    steps:
+      - name: Actions -> Checkout
+        uses: actions/checkout@v3
+      - name: Actions -> Setup-Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - run: yarn --version
+      - run: cd client && yarn install --immutable --immutable-cache
+
+      - name: Build Client
+        run: cd client && yarn build
+
+#  Client_Test:
+#    runs-on: ubuntu-latest
+#    concurrency:
+#      group: client_jobs
+#      cancel-in-progress: true
+
+  Server_Build:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: server_jobs
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Gradle Build
+        run: cd server && (./gradlew build)
+
+#  Server_Test:
+#    runs-on: ubuntu-latest
+#    concurrency:
+#      group: server_jobs
+#      cancel-in-progress: true
