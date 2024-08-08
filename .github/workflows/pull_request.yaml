@@ -47,7 +47,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Gradle Build
-        run: cd server && (./gradlew build)
+        run: cd server && gradle build
 
 #  Server_Test:
 #    runs-on: ubuntu-latest
