@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: 'bvb-dividends-postgres'
+    image: 'postgres:16.4'
+    ports:
+      - '5555:5432'
+    restart: 'always'
+    environment:
+      POSTGRES_DB: bvb-dividends
+      POSTGRES_USER: local-bvb-dividends
+      POSTGRES_PASSWORD: 1a0f64580636c6c3f5ac2760e4fbed08
