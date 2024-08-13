@@ -46,8 +46,12 @@ jobs:
         with:
           java-version: '22'
           distribution: 'temurin'
+      - name: Start dependencies
+        run: cd server && make start-local-dependencies
       - name: Gradle Build
-        run: cd server && gradle build
+        run: gradle build
+      - name: Stop dependencies
+        run: make stop-local-dependencies
 
 #  Server_Test:
 #    runs-on: ubuntu-latest
