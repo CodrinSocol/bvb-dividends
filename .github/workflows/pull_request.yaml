@@ -51,7 +51,7 @@ jobs:
       - name: Gradle Build
         run: cd server && gradle build
       - name: Stop dependencies
-	  	run: cd server && make stop-local-dependencies
+        run: cd server && make stop-local-dependencies
 
 #  Server_Test:
 #    runs-on: ubuntu-latest
