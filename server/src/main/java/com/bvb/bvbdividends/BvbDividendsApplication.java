@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 public class BvbDividendsApplication {
 
 	public static void main(String[] args) {
-        SpringApplication.run(BvbDividendsApplication.class, args);
+		SpringApplication.run(BvbDividendsApplication.class, args);
 	}
 
 }
