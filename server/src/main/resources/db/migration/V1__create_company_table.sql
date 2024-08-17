@@ -1,0 +1,4 @@
+CREATE TABLE company (
+    symbol VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
