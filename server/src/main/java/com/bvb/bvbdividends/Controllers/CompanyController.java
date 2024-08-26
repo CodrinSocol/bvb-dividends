@@ -16,11 +16,13 @@ public class CompanyController {
 
     @GetMapping("/companies")
     public List<CompanySymbolDTO> listBVBCompanies() {
-        return Stream.of("BVB", "BVB2", "BVB3").map(CompanySymbolDTO::new).collect(Collectors.toList());
+        return Stream.of("BVB", "BVB2", "BVB3").map(CompanySymbolDTO::new)
+            .collect(Collectors.toList());
     }
 
     @GetMapping("/company")
     public CompanyDTO getCompanyFromSymbol(@RequestParam String symbol) {
         return new CompanyDTO(symbol, "BVB");
     }
+
 }
