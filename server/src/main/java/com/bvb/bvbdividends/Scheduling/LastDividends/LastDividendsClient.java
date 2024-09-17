@@ -23,8 +23,8 @@ public class LastDividendsClient extends WebServiceGatewaySupport {
 		try {
 			GetLastDividendsResponse getLastDividendsResponse = (GetLastDividendsResponse) getWebServiceTemplate()
 				.marshalSendAndReceive(LAST_DIVIDENDS_ENDPOINT, getLastDividendsRequest, LAST_DIVIDENDS_CALLBACK);
-			return toCompanies(getLastDividendsResponse.getGetLastDividendsResult().getDividendIdentification());
-		} catch (Exception e) {
+
+		return toCompanies(getLastDividendsResponse.getGetLastDividendsResult().getDividendIdentification());} catch (Exception e) {
 			logger.error("Failed to get last dividends");
 			logger.error(e.getMessage());
 		}

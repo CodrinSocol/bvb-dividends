@@ -18,6 +18,10 @@ public class BvbDailyImportTask {
 	private final LastDividendsClient lastDividendsClient;
 	private final CompanyRepository companyRepository;
 
+	public BvbDailyImportTask(LastDividendsClient lastDividendsClient, CompanyRepository companyRepository) {
+		this.lastDividendsClient = lastDividendsClient;
+		this.companyRepository = companyRepository;
+	}
 
 	public BvbDailyImportTask(LastDividendsClient lastDividendsClient, CompanyRepository companyRepository) {
 		this.lastDividendsClient = lastDividendsClient;
@@ -28,7 +32,8 @@ public class BvbDailyImportTask {
      * Import dividends by calling the BVB API.
      * This method is scheduled to run every day at 12:00, Bucharest, Romania Time Zone.
      */
-    @Scheduled(cron="0 0 12 * * *", zone="Europe/Bucharest")
+//    @Scheduled(cron="0 0 12 * * *", zone="Europe/Bucharest")
+	@Scheduled(fixedRate = 30000)
     public void importBvbDividends() {
         log.info("Starting to get last BVB companies that announced dividends");
 
