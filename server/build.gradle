@@ -1,3 +1,5 @@
+import org.codehaus.groovy.runtime.GStringImpl
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.2'
@@ -13,8 +15,48 @@ java {
 	}
 }
 
+ext.jaxwsSourceDir = "${layout.buildDirectory.get()}/generated/sources/jaxws" as GStringImpl
+
+configurations {
+	jaxws
+}
+
 repositories {
 	mavenCentral()
+}
+
+tasks.register('wsimport') {
+	description = 'Generate classes from wsdl using wsimport'
+
+	doLast {
+		project.mkdir(jaxwsSourceDir)
+		ant {
+			taskdef(name: 'wsimport',
+					classname: 'com.sun.tools.ws.ant.WsImport',
+					classpath: configurations.jaxws.asPath
+			)
+			wsimport(
+					keep: true,
+					destdir: jaxwsSourceDir,
+					extension: "true",
+					verbose: true,
+					wsdl: "https://ws.bvb.ro/BVBFinancialsWS/Financials.asmx?WSDL",
+					xnocompile: true,
+					package: "com.bvb.bvbdividends.wsdl") {
+				xjcarg(value: "-XautoNameResolution")
+			}
+		}
+	}
+}
+
+sourceSets {
+	main {
+		java.srcDirs += jaxwsSourceDir
+	}
+}
+
+compileJava {
+	dependsOn wsimport
 }
 
 dependencies {
@@ -23,6 +65,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web-services'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
+
+	jaxws 'com.sun.xml.ws:jaxws-tools:4.0.2',
+			'jakarta.xml.ws:jakarta.xml.ws-api:4.0.2',
+			'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2',
+			'jakarta.activation:jakarta.activation-api:2.1.3',
+			'com.sun.xml.ws:jaxws-rt:4.0.2'
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
