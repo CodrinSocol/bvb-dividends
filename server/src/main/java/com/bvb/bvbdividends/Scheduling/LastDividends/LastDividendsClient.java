@@ -32,12 +32,6 @@ public class LastDividendsClient extends WebServiceGatewaySupport {
 	}
 
 	private List<Company> toCompanies(List<DividendIdentification> dividendIdentificationList) {
-		return dividendIdentificationList.stream().map(dividendIdentification -> {
-			Company company = new Company();
-			company.setSymbol(dividendIdentification.getSymbol());
-			company.setName(dividendIdentification.getCompany().getCompanyName());
-
-			return company;
-		}).distinct().toList();
+		return dividendIdentificationList.stream().map(Company::fromDividendIdentification).distinct().toList();
 	}
 }
