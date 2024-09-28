@@ -1,5 +1,6 @@
 package com.bvb.bvbdividends.Entities;
 
+import com.bvb.bvbdividends.wsdl.DividendIdentification;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Setter
@@ -33,18 +33,14 @@ public class Company {
 
 	@OneToMany(fetch = FetchType.LAZY)
 	@JoinColumn(name = "company_symbol", referencedColumnName = "symbol")
-	private List<Dividend> dividend;
+	private List<Dividend> dividends;
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Company company = (Company) o;
-		return Objects.equals(symbol, company.symbol) && Objects.equals(name, company.name);
-	}
+	public static Company fromDividendIdentification(DividendIdentification dividendIdentification) {
+		Company company = new Company();
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(symbol, name);
+		company.setSymbol(dividendIdentification.getSymbol());
+		company.setName(dividendIdentification.getCompany().getCompanyName());
+
+		return company;
 	}
 }

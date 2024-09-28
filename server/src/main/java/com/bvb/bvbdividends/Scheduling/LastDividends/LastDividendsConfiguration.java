@@ -8,20 +8,20 @@ import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 public class LastDividendsConfiguration {
 
 	@Bean
-	public Jaxb2Marshaller marshaller() {
-		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-		marshaller.setContextPath("com.bvb.bvbdividends.wsdl");
+	public Jaxb2Marshaller lastDividendsMarshaller() {
+		Jaxb2Marshaller lastDividendsMarshaller = new Jaxb2Marshaller();
+		lastDividendsMarshaller.setContextPath("com.bvb.bvbdividends.wsdl");
 
-		return marshaller;
+		return lastDividendsMarshaller;
 	}
 
 	@Bean
-	public LastDividendsClient lastDividendsClient(Jaxb2Marshaller marshaller) {
+	public LastDividendsClient lastDividendsClient(Jaxb2Marshaller lastDividendsMarshaller) {
 		LastDividendsClient lastDividendsClient = new LastDividendsClient();
 
 		lastDividendsClient.setDefaultUri("https://ws.bvb.ro/BVBFinancialsWS/Financials.asmx/GetLastDividends");
-		lastDividendsClient.setMarshaller(marshaller);
-		lastDividendsClient.setUnmarshaller(marshaller);
+		lastDividendsClient.setMarshaller(lastDividendsMarshaller);
+		lastDividendsClient.setUnmarshaller(lastDividendsMarshaller);
 
 		return lastDividendsClient;
 	}

@@ -23,8 +23,8 @@ public class LastDividendsClient extends WebServiceGatewaySupport {
 		try {
 			GetLastDividendsResponse getLastDividendsResponse = (GetLastDividendsResponse) getWebServiceTemplate()
 				.marshalSendAndReceive(LAST_DIVIDENDS_ENDPOINT, getLastDividendsRequest, LAST_DIVIDENDS_CALLBACK);
-			return toCompanies(getLastDividendsResponse.getGetLastDividendsResult().getDividendIdentification());
-		} catch (Exception e) {
+
+		return toCompanies(getLastDividendsResponse.getGetLastDividendsResult().getDividendIdentification());} catch (Exception e) {
 			logger.error("Failed to get last dividends");
 			logger.error(e.getMessage());
 		}
@@ -32,12 +32,6 @@ public class LastDividendsClient extends WebServiceGatewaySupport {
 	}
 
 	private List<Company> toCompanies(List<DividendIdentification> dividendIdentificationList) {
-		return dividendIdentificationList.stream().map(dividendIdentification -> {
-			Company company = new Company();
-			company.setSymbol(dividendIdentification.getSymbol());
-			company.setName(dividendIdentification.getCompany().getCompanyName());
-
-			return company;
-		}).distinct().toList();
+		return dividendIdentificationList.stream().map(Company::fromDividendIdentification).distinct().toList();
 	}
 }

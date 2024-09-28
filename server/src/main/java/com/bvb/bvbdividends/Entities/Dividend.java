@@ -1,15 +1,21 @@
 package com.bvb.bvbdividends.Entities;
 
+import com.bvb.bvbdividends.wsdl.DividendInfo;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SourceType;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "dividend")
 public class Dividend {
 
@@ -67,4 +73,28 @@ public class Dividend {
 	@UpdateTimestamp(source = SourceType.DB)
 	private LocalDateTime updatedAt;
 
+	public static Dividend fromDividendInfo(Company company, DividendInfo dividendInfo) {
+		Dividend dividend = new Dividend();
+
+		dividend.setCompanySymbol(company.getSymbol());
+		dividend.setYear(dividendInfo.getYear());
+		dividend.setDividendForNaturalPerson(dividendInfo.getDividendForNaturalPersons());
+		dividend.setDividendForLegalPersons(dividendInfo.getDividendForLegalPersons());
+		dividend.setDividendsTotal(dividendInfo.getDividendsTotal());
+		dividend.setDividendType(dividendInfo.getDividendType());
+		dividend.setReferenceDateForGMS(dividendInfo.getReferenceDateForGMS() != null ? fromXMLGregorianCalendar(dividendInfo.getReferenceDateForGMS()) : null);
+		dividend.setGMSDate(dividendInfo.getGMSDate() != null ? fromXMLGregorianCalendar(dividendInfo.getGMSDate()) : null);
+		dividend.setRecordDate(dividendInfo.getRecordDate() != null ? fromXMLGregorianCalendar(dividendInfo.getRecordDate()) : null);
+		dividend.setExDividendDate(dividendInfo.getExDividendDate() != null ? fromXMLGregorianCalendar(dividendInfo.getExDividendDate()) : null);
+		dividend.setAnnouncementDate(dividendInfo.getAnnouncementDate() != null ? fromXMLGregorianCalendar(dividendInfo.getAnnouncementDate()) : null);
+		dividend.setStartPaymentDate(dividendInfo.getStartPaymentDate() != null ? fromXMLGregorianCalendar(dividendInfo.getStartPaymentDate()) : null);
+		dividend.setEndPaymentDate(dividendInfo.getEndPaymentDate() != null ? fromXMLGregorianCalendar(dividendInfo.getEndPaymentDate()) : null);
+		dividend.setMethodOfDividendDistribution(dividendInfo.getMethodOfDividendDistribution());
+
+		return dividend;
+	}
+
+	private static LocalDateTime fromXMLGregorianCalendar(XMLGregorianCalendar xmlGregorianCalendar) {
+		return xmlGregorianCalendar.toGregorianCalendar().toZonedDateTime().toLocalDateTime();
+	}
 }
