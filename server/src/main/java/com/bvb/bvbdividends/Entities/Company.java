@@ -1,5 +1,6 @@
 package com.bvb.bvbdividends.Entities;
 
+import com.bvb.bvbdividends.DTOs.CompanyDTO;
 import com.bvb.bvbdividends.wsdl.DividendIdentification;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.modelmapper.ModelMapper;
 
 @Entity
 @Setter
@@ -42,5 +44,10 @@ public class Company {
 		company.setName(dividendIdentification.getCompany().getCompanyName());
 
 		return company;
+	}
+
+	public CompanyDTO toCompanyDTO() {
+		ModelMapper modelMapper = new ModelMapper();
+		return modelMapper.map(this, CompanyDTO.class);
 	}
 }

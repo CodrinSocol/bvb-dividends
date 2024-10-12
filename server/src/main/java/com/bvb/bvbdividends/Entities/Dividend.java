@@ -1,5 +1,6 @@
 package com.bvb.bvbdividends.Entities;
 
+import com.bvb.bvbdividends.DTOs.DividendDTO;
 import com.bvb.bvbdividends.wsdl.DividendInfo;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.modelmapper.ModelMapper;
 
 @Entity
 @Getter
@@ -92,6 +94,11 @@ public class Dividend {
 		dividend.setMethodOfDividendDistribution(dividendInfo.getMethodOfDividendDistribution());
 
 		return dividend;
+	}
+
+	public DividendDTO toDividendDTO() {
+		ModelMapper modelMapper = new ModelMapper();
+		return modelMapper.map(this, DividendDTO.class);
 	}
 
 	private static LocalDateTime fromXMLGregorianCalendar(XMLGregorianCalendar xmlGregorianCalendar) {

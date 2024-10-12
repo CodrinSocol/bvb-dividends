@@ -42,8 +42,7 @@ public class BvbDailyImportTask {
      * Import dividends by calling the BVB API.
      * This method is scheduled to run every day at 12:00, Bucharest, Romania Time Zone.
      */
-//    @Scheduled(cron="0 0 12 * * *", zone="Europe/Bucharest")
-	@Scheduled(fixedRate = 30000)
+    @Scheduled(cron="0 0 12 * * *", zone="Europe/Bucharest")
 	@Transactional
     public void importBvbDividends() {
         log.info("Starting to get last BVB companies that announced dividends and their dividends");
@@ -60,7 +59,7 @@ public class BvbDailyImportTask {
 	private void persistCompanyAndDividends(Company company) {
 		try {
 			List<Dividend> dividends = dividendsForACompanyClient.getDividendsForACompany(company);
-
+			log.info("Persisting company and dividends: {}", company.getSymbol());
 			companyRepository.insertIfNotExists(company);
 
 			dividendRepository.deleteAllByCompanySymbol(company.getSymbol());
