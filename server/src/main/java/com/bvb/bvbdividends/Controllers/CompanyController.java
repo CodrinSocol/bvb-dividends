@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @RestController
 public class CompanyController {
 
-    private CompanyService companyService;
+    private final CompanyService companyService;
 
     @Autowired
     public CompanyController(CompanyService companyService) {

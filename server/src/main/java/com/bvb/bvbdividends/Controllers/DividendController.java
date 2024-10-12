@@ -1,28 +1,20 @@
 package com.bvb.bvbdividends.Controllers;
 
-import com.bvb.bvbdividends.DTOs.CompanyDTO;
 import com.bvb.bvbdividends.DTOs.DividendDTO;
-import com.bvb.bvbdividends.Entities.Company;
 import com.bvb.bvbdividends.Entities.Dividend;
-import com.bvb.bvbdividends.Repositories.DividendRepository;
 import com.bvb.bvbdividends.Services.DividendService;
-import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
 public class DividendController {
 
-    private DividendService dividendService;
-    private Logger log = LoggerFactory.getLogger(DividendController.class);
+    private final DividendService dividendService;
 
     @Autowired
     public DividendController(DividendService dividendService) {
