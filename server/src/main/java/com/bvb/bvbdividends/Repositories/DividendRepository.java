@@ -20,6 +20,8 @@ public interface DividendRepository extends JpaRepository<Dividend, UUID> {
 	// reached yet.
 	List<Dividend> findAllByExDividendDateAfter(LocalDateTime exDividendDate);
 
+	Page<Dividend> findAllByCompanySymbolAndExDividendDateAfterAndExDividendDateBefore(String companySymbol, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+
 	Page<Dividend> findAllByYear(Integer year, Pageable pageable);
 
 	Page<Dividend> findAllByCompanySymbol(String companySymbol, Pageable pageable);
