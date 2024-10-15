@@ -67,8 +67,6 @@ dependencies {
 	implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
 
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
-
 	jaxws 'com.sun.xml.ws:jaxws-tools:4.0.2',
 			'jakarta.xml.ws:jakarta.xml.ws-api:4.0.2',
 			'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2',
