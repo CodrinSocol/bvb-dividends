@@ -30,24 +30,25 @@ public class DividendService {
 
 	public Page<Dividend> getAllDividendsPaginated(Integer pageNumber,
 												   Integer pageSize, String companySymbol,
-												   Boolean onlyActive, LocalDate startDate,
+												   LocalDate startDate,
 												   LocalDate endDate) {
 
-
+		LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() :
+			LocalDateTime.parse("1900-01-01T00:00:00");
+		LocalDateTime endDateTime = endDate != null ? endDate.atStartOfDay() :
+			LocalDateTime.parse("2100-01-01T00:00:00");
 
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
-		return dividendRepository.findAll(companySymbol,
-			pageable);
+
+		if(companySymbol == null) {
+			return dividendRepository.findAllByExDividendDateAfterAndExDividendDateBefore(startDateTime, endDateTime, pageable);
+		}
+
+		return dividendRepository.findAllByCompanySymbolAndExDividendDateAfterAndExDividendDateBefore(companySymbol, startDateTime, endDateTime, pageable);
 	}
 
 	public Optional<Dividend> getDividendById(UUID dividendId) {
 		return dividendRepository.findById(dividendId);
 	}
-
-//	public Page<Dividend> getAllDividendsBySymbolPaginated(String symbol, Integer pageNumber,
-//															Integer pageSize) {
-//		Pageable pageable = PageRequest.of(pageNumber, pageSize);
-//		return dividendRepository.findAllByCompanySymbol(symbol, pageable);
-//	}
 
 }

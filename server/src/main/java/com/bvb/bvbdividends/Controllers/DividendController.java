@@ -25,51 +25,37 @@ public class DividendController {
         this.dividendService = dividendService;
     }
 
+    @GetMapping("/dividend")
+    public ResponseEntity<Dividend> getDividendById(@RequestParam UUID dividendId) {
+        Optional<Dividend> dividend = dividendService.getDividendById(dividendId);
 
-//    @GetMapping("/active-dividends")
-//    public List<DividendDTO> getActiveDividends() {
-//
-//        List<Dividend> activeDividends = dividendService.getActiveDividends();
-//
-//        return activeDividends.stream()
-//                .map(Dividend::toDividendDTO)
-//                .toList();
-//    }
+        return dividend.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/active-dividends")
+    public ResponseEntity<List<DividendDTO>> getActiveDividends() {
+        List<Dividend> activeDividends = dividendService.getActiveDividends();
+
+        return ResponseEntity.ok(activeDividends.stream()
+                .map(Dividend::toDividendDTO)
+                .toList());
+    }
 
     @GetMapping("/dividends")
     public ResponseEntity<List<DividendDTO>> getDividendsPaginatedAndFiltered(
       @RequestParam Integer pageNumber,
       @RequestParam Integer pageSize,
       @RequestParam(required = false) String companySymbol,
-      @RequestParam(required = false) Boolean onlyActive,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
+        System.out.println(startDate);
+        System.out.println(endDate);
         Page<Dividend> dividends = dividendService.getAllDividendsPaginated(pageNumber,
-            pageSize, companySymbol, onlyActive, startDate, endDate);
-
-
+            pageSize, companySymbol, startDate, endDate);
 
         return ResponseEntity.ok(dividends.stream()
             .map(Dividend::toDividendDTO)
             .toList());
     }
-
-    @GetMapping("/dividend")
-    public ResponseEntity<Dividend> getDividendBySymbolAndYear(@RequestParam UUID dividendId) {
-        Optional<Dividend> dividend = dividendService.getDividendById(dividendId);
-
-		return dividend.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-	}
-
-
-//    @GetMapping("/company-dividends")
-//    public List<DividendDTO> getDividendsBySymbolPaginated(@RequestParam String symbol, @RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
-//        Page<Dividend> dividends = dividendService.getAllDividendsBySymbolPaginated(symbol, pageNumber, pageSize);
-//
-//        return dividends.stream()
-//            .map(Dividend::toDividendDTO)
-//            .toList();
-//    }
-//
 }

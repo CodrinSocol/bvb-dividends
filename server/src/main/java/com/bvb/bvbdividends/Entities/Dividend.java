@@ -3,16 +3,15 @@ package com.bvb.bvbdividends.Entities;
 import com.bvb.bvbdividends.DTOs.DividendDTO;
 import com.bvb.bvbdividends.wsdl.DividendInfo;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import javax.xml.datatype.XMLGregorianCalendar;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SourceType;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
 import org.modelmapper.ModelMapper;
 
 @Entity
