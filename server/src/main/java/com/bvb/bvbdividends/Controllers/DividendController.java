@@ -49,8 +49,6 @@ public class DividendController {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        System.out.println(startDate);
-        System.out.println(endDate);
         Page<Dividend> dividends = dividendService.getAllDividendsPaginated(pageNumber,
             pageSize, companySymbol, startDate, endDate);
 
