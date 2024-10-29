@@ -100,6 +100,7 @@ public class Dividend {
 		return modelMapper.map(this, DividendDTO.class);
 	}
 
+	//some change fr commit
 	private static LocalDateTime fromXMLGregorianCalendar(XMLGregorianCalendar xmlGregorianCalendar) {
 		return xmlGregorianCalendar.toGregorianCalendar().toZonedDateTime().toLocalDateTime();
 	}
