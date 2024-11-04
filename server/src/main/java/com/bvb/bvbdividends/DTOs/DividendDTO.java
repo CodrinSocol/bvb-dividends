@@ -21,6 +21,6 @@ public class DividendDTO {
     private LocalDateTime recordDate;
     private LocalDateTime announcementDate;
 
-    private double dividendForNaturalPerson;
-    private double dividendForLegalPersons;
+    private Double dividendForNaturalPerson;
+    private Double dividendForLegalPersons;
 }
