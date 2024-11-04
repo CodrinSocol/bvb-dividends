@@ -1,6 +1,7 @@
 package com.bvb.bvbdividends.Controllers;
 
 import com.bvb.bvbdividends.DTOs.DividendDTO;
+import com.bvb.bvbdividends.DTOs.DividendFullDTO;
 import com.bvb.bvbdividends.Entities.Dividend;
 import com.bvb.bvbdividends.Services.DividendService;
 import java.time.LocalDate;
@@ -26,10 +27,11 @@ public class DividendController {
   }
 
   @GetMapping("/dividend")
-  public ResponseEntity<Dividend> getDividendById(@RequestParam UUID dividendId) {
+  public ResponseEntity<DividendFullDTO> getDividendById(@RequestParam UUID dividendId) {
     Optional<Dividend> dividend = dividendService.getDividendById(dividendId);
 
-    return dividend.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    return dividend.map(value -> ResponseEntity.ok(value.toDividendFullDTO()))
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @GetMapping("/active-dividends")

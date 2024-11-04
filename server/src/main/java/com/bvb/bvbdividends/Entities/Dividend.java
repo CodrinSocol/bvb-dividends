@@ -1,6 +1,7 @@
 package com.bvb.bvbdividends.Entities;
 
 import com.bvb.bvbdividends.DTOs.DividendDTO;
+import com.bvb.bvbdividends.DTOs.DividendFullDTO;
 import com.bvb.bvbdividends.wsdl.DividendInfo;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -115,5 +116,10 @@ public class Dividend {
   public DividendDTO toDividendDTO() {
     ModelMapper modelMapper = new ModelMapper();
     return modelMapper.map(this, DividendDTO.class);
+  }
+
+  public DividendFullDTO toDividendFullDTO() {
+    ModelMapper modelMapper = new ModelMapper();
+    return modelMapper.map(this, DividendFullDTO.class);
   }
 }
