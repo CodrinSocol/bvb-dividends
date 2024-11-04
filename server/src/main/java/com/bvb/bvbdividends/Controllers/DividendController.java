@@ -1,49 +1,63 @@
 package com.bvb.bvbdividends.Controllers;
 
 import com.bvb.bvbdividends.DTOs.DividendDTO;
+import com.bvb.bvbdividends.DTOs.DividendFullDTO;
+import com.bvb.bvbdividends.Entities.Dividend;
+import com.bvb.bvbdividends.Services.DividendService;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.util.List;
-
 @RestController
 public class DividendController {
 
-    @GetMapping("/active-dividends")
-    public List<DividendDTO> getActiveDividendsPaginated(@RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
-        return List.of(
-                new DividendDTO("1", "BVB", 2020),
-                new DividendDTO("2", "BVB", 2021),
-                new DividendDTO("3", "BVB", 2022)
-        );
-    }
+  private final DividendService dividendService;
 
-    @GetMapping("/dividends")
-    public List<DividendDTO> getAllDividendsPaginated(@RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
-        return List.of(
-                new DividendDTO("1", "BVB", 2020),
-                new DividendDTO("2", "BVB", 2021),
-                new DividendDTO("3", "BVB", 2022)
-        );
-    }
+  @Autowired
+  public DividendController(DividendService dividendService) {
+    this.dividendService = dividendService;
+  }
 
-    @GetMapping("/dividends-by-symbol")
-    public List<DividendDTO> getDividendsBySymbolPaginated(@RequestParam String symbol, @RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
-        return List.of(
-                new DividendDTO("1", symbol, 2020),
-                new DividendDTO("2", symbol, 2021),
-                new DividendDTO("3", symbol, 2022)
-        );
-    }
+  @GetMapping("/dividend")
+  public ResponseEntity<DividendFullDTO> getDividendById(@RequestParam UUID dividendId) {
+    Optional<Dividend> dividend = dividendService.getDividendById(dividendId);
 
-    @GetMapping("calendar-dividends")
-    public List<DividendDTO> getCalendarDividendsPaginated(@RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
-        return List.of(
-                new DividendDTO("1", "BVB", 2020),
-                new DividendDTO("2", "BVB", 2021),
-                new DividendDTO("3", "BVB", 2022)
-        );
-    }
+    return dividend.map(value -> ResponseEntity.ok(value.toDividendFullDTO()))
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @GetMapping("/active-dividends")
+  public ResponseEntity<List<DividendDTO>> getActiveDividends() {
+    List<Dividend> activeDividends = dividendService.getActiveDividends();
+
+    return ResponseEntity.ok(activeDividends.stream()
+        .map(Dividend::toDividendDTO)
+        .toList());
+  }
+
+  @GetMapping("/dividends")
+  public ResponseEntity<List<DividendDTO>> getDividendsPaginatedAndFiltered(
+      @RequestParam Integer pageNumber,
+      @RequestParam Integer pageSize,
+      @RequestParam(required = false) String companySymbol,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate startDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate endDate) {
+
+    Page<Dividend> dividends = dividendService.getAllDividendsPaginated(pageNumber,
+        pageSize, companySymbol, startDate, endDate);
+
+    return ResponseEntity.ok(dividends.stream()
+        .map(Dividend::toDividendDTO)
+        .toList());
+  }
 }

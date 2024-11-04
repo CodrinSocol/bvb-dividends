@@ -7,9 +7,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CompanyRepository extends JpaRepository<Company, String> {
 
-	default void insertIfNotExists(Company company) {
-		if (!existsById(company.getSymbol())) {
-			save(company);
-		}
-	}
+  default void insertIfNotExists(Company company) {
+    if (!existsById(company.getSymbol())) {
+      save(company);
+    }
+  }
 }
