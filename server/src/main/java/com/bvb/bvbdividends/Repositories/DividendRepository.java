@@ -12,13 +12,16 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DividendRepository extends JpaRepository<Dividend, UUID> {
 
-	void deleteAllByCompanySymbol(String companySymbol);
+  void deleteAllByCompanySymbol(String companySymbol);
 
-	// get all active dividends. an active dividend is a dividend whose ex-date has not been
-	// reached yet.
-	List<Dividend> findAllByExDividendDateAfter(LocalDateTime exDividendDate);
+  // get all active dividends. an active dividend is a dividend whose ex-date has not been
+  // reached yet.
+  List<Dividend> findAllByExDividendDateAfter(LocalDateTime exDividendDate);
 
-	Page<Dividend> findAllByExDividendDateAfterAndExDividendDateBefore(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+  Page<Dividend> findAllByExDividendDateAfterAndExDividendDateBefore(LocalDateTime startDate,
+                                                                     LocalDateTime endDate,
+                                                                     Pageable pageable);
 
-	Page<Dividend> findAllByCompanySymbolAndExDividendDateAfterAndExDividendDateBefore(String companySymbol, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+  Page<Dividend> findAllByCompanySymbolAndExDividendDateAfterAndExDividendDateBefore(
+      String companySymbol, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 }

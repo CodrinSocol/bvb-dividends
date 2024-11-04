@@ -6,5 +6,5 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class CompanySymbolDTO {
-    private String symbol;
+  private String symbol;
 }

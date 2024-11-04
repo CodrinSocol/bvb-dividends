@@ -10,6 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CompanyDTO {
-    private String symbol;
-    private String name;
+  private String symbol;
+  private String name;
 }

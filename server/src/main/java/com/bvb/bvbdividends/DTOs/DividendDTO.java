@@ -12,15 +12,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DividendDTO {
-    private UUID id;
-    private String companySymbol;
-    private Integer year;
+  private UUID id;
+  private String companySymbol;
+  private Integer year;
 
-    private LocalDateTime exDividendDate;
-    private LocalDateTime startPaymentDate;
-    private LocalDateTime recordDate;
-    private LocalDateTime announcementDate;
+  private LocalDateTime exDividendDate;
+  private LocalDateTime startPaymentDate;
+  private LocalDateTime recordDate;
+  private LocalDateTime announcementDate;
 
-    private Double dividendForNaturalPerson;
-    private Double dividendForLegalPersons;
+  private Double dividendForNaturalPerson;
+  private Double dividendForLegalPersons;
 }

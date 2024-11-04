@@ -18,42 +18,44 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DividendController {
 
-    private final DividendService dividendService;
+  private final DividendService dividendService;
 
-    @Autowired
-    public DividendController(DividendService dividendService) {
-        this.dividendService = dividendService;
-    }
+  @Autowired
+  public DividendController(DividendService dividendService) {
+    this.dividendService = dividendService;
+  }
 
-    @GetMapping("/dividend")
-    public ResponseEntity<Dividend> getDividendById(@RequestParam UUID dividendId) {
-        Optional<Dividend> dividend = dividendService.getDividendById(dividendId);
+  @GetMapping("/dividend")
+  public ResponseEntity<Dividend> getDividendById(@RequestParam UUID dividendId) {
+    Optional<Dividend> dividend = dividendService.getDividendById(dividendId);
 
-        return dividend.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
+    return dividend.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+  }
 
-    @GetMapping("/active-dividends")
-    public ResponseEntity<List<DividendDTO>> getActiveDividends() {
-        List<Dividend> activeDividends = dividendService.getActiveDividends();
+  @GetMapping("/active-dividends")
+  public ResponseEntity<List<DividendDTO>> getActiveDividends() {
+    List<Dividend> activeDividends = dividendService.getActiveDividends();
 
-        return ResponseEntity.ok(activeDividends.stream()
-                .map(Dividend::toDividendDTO)
-                .toList());
-    }
+    return ResponseEntity.ok(activeDividends.stream()
+        .map(Dividend::toDividendDTO)
+        .toList());
+  }
 
-    @GetMapping("/dividends")
-    public ResponseEntity<List<DividendDTO>> getDividendsPaginatedAndFiltered(
+  @GetMapping("/dividends")
+  public ResponseEntity<List<DividendDTO>> getDividendsPaginatedAndFiltered(
       @RequestParam Integer pageNumber,
       @RequestParam Integer pageSize,
       @RequestParam(required = false) String companySymbol,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate startDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+      LocalDate endDate) {
 
-        Page<Dividend> dividends = dividendService.getAllDividendsPaginated(pageNumber,
-            pageSize, companySymbol, startDate, endDate);
+    Page<Dividend> dividends = dividendService.getAllDividendsPaginated(pageNumber,
+        pageSize, companySymbol, startDate, endDate);
 
-        return ResponseEntity.ok(dividends.stream()
-            .map(Dividend::toDividendDTO)
-            .toList());
-    }
+    return ResponseEntity.ok(dividends.stream()
+        .map(Dividend::toDividendDTO)
+        .toList());
+  }
 }
