@@ -1,0 +1,25 @@
+# Build tool binaries (rebuilt from tools/go.mod by scripts/build-go-tools.sh)
+/.bin/
+
+# Node / Bun
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Nx
+.nx/cache
+.nx/workspace-data
+
+# Go
+*.test
+*.out
+/coverage/
+
+# Local environment
+.env
+.env.local
+
+# Editors
+.idea/
+.vscode/
+.DS_Store

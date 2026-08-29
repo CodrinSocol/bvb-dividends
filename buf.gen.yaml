@@ -1,0 +1,29 @@
+# Code generation from the proto API definition.
+#
+# Plugins are the pinned binaries in .bin/ built from tools/go.mod, because the
+# Buf Schema Registry (and therefore remote plugins) is unreachable here.
+# Only `proto/` is generated; third_party/googleapis already has published Go
+# packages, which its own `go_package` options point at.
+version: v2
+plugins:
+  - local: .bin/protoc-gen-go
+    out: libs/genproto
+    opt: paths=source_relative
+  - local: .bin/protoc-gen-go-grpc
+    out: libs/genproto
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false
+  - local: .bin/protoc-gen-grpc-gateway
+    out: libs/genproto
+    opt:
+      - paths=source_relative
+      - generate_unbound_methods=false
+  - local: .bin/protoc-gen-openapi
+    out: docs/openapi
+    opt:
+      - title=BVB Dividends API
+      - version=v1
+      - naming=json
+      - enum_type=string
+      - default_response=false

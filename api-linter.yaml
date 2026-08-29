@@ -1,0 +1,9 @@
+# google/api-linter configuration.
+#
+# The linter enforces the AIPs (https://google.aip.dev) against the compiled
+# proto descriptors. Disabled rules are listed here with the reason they do not
+# apply; the default is that a finding is a bug to fix, not a rule to silence.
+- included_paths:
+    - "third_party/**"
+  disabled_rules:
+    - "all"
