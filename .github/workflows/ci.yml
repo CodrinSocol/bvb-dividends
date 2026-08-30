@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push supersedes the run in flight for the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The integration tests refuse to run unless the database name says it is a
+  # test database, because they truncate between cases.
+  TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/bvb_dividends_test?sslmode=disable
+
+jobs:
+  api:
+    name: API contract
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # buf breaking compares against main, which needs its history.
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - name: Cache the pinned protobuf and SQL tools
+        uses: actions/cache@v4
+        with:
+          path: .bin
+          key: go-tools-${{ runner.os }}-${{ hashFiles('tools/go.sum', 'scripts/build-go-tools.sh') }}
+
+      - run: bun install --frozen-lockfile
+
+      # Enforces the AIPs against the proto descriptors. This is the check that
+      # makes "AIP-compliant" a property of the build rather than a claim.
+      - name: Lint the API against the AIPs
+        run: bunx nx run proto:lint
+
+      - name: Check for breaking API changes
+        if: github.event_name == 'pull_request'
+        run: bunx nx run proto:breaking
+
+      # Generated code is committed so editors and gopls work without a build
+      # step; these fail if what is committed is not what the inputs produce.
+      - name: Check the generated code is current
+        run: bunx nx run proto:check-generated
+
+      - name: Check the generated queries are current
+        run: bunx nx run postgres:check-generated
+
+  go:
+    name: Go
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bvb_dividends_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - uses: actions/cache@v4
+        with:
+          path: .bin
+          key: go-tools-${{ runner.os }}-${{ hashFiles('tools/go.sum', 'scripts/build-go-tools.sh') }}
+
+      - run: bun install --frozen-lockfile
+
+      - name: Verify the migrations apply from an empty database
+        run: |
+          bunx nx run proto:tools
+          DATABASE_URL="$TEST_DATABASE_URL" .bin/goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
+          DATABASE_URL="$TEST_DATABASE_URL" .bin/goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" down-to 0
+          DATABASE_URL="$TEST_DATABASE_URL" .bin/goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
+
+      - run: go vet ./...
+
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.5.0
+
+      - name: Test
+        run: go test -race -count=1 ./...
+
+  web:
+    name: Web
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - run: bun install --frozen-lockfile
+
+      # Types are regenerated from the committed specification and the build
+      # type-checks against them, so a client that has drifted fails here.
+      - name: Build
+        run: bunx nx run web:build
+
+  images:
+    name: Container images
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the api image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: APP=api
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build the importer image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: APP=importer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

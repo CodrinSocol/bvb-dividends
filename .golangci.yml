@@ -1,0 +1,46 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - contextcheck
+    - errorlint
+    - copyloopvar
+    - gosec
+    - misspell
+    - nilerr
+    - noctx
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - unconvert
+    - wastedassign
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+    misspell:
+      # Romanian proper nouns that the US-English dictionary flags. These are
+      # legal company names as BVB reports them, not typos.
+      ignore-rules:
+        - transilvania
+    gosec:
+      excludes:
+        # Integer conversions are checked explicitly where they matter; G115
+        # fires on every int32 page size the generated protobuf code hands us.
+        - G115
+  exclusions:
+    rules:
+      # Generated protobuf and gateway code is not ours to style.
+      - path: libs/genproto/
+        linters: [revive, errorlint, gosec, unconvert, misspell, staticcheck]
+      # Tests read their own fixtures by name and construct throwaway servers;
+      # the file-inclusion and TLS rules are about untrusted input at runtime.
+      - path: _test\.go
+        linters: [gosec]
+
+formatters:
+  enable:
+    - gofmt
