@@ -1,0 +1,43 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "bvb-dividends",
+  "projectType": "application",
+  "sourceRoot": "cmd/bvb-dividends",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["proto:build:proto", "db:build:sqlc", "web:build"],
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "command": "go build -o dist/bvb-dividends ./cmd/bvb-dividends"
+      },
+      "outputs": ["{workspaceRoot}/dist/bvb-dividends"]
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "go run ./cmd/bvb-dividends" }
+    },
+    "import": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "go run ./cmd/bvb-dividends import" }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "go run ./cmd/bvb-dividends migrate" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "go test -race -count=1 ./..." }
+    },
+    "lint:go": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "go tool golangci-lint run" }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["web:build"],
+      "options": { "cwd": "{workspaceRoot}", "command": "docker build -t bvb-dividends ." }
+    }
+  },
+  "tags": ["lang:go", "type:app"]
+}

@@ -26,3 +26,8 @@ dist/
 # does not exist; what vite writes into it is not committed.
 /web/dist/*
 !/web/dist/.gitkeep
+
+# Go build output. `go build ./...` writes an executable named after the
+# package into the working directory.
+/bvb-dividends
+/bvb-dividends.exe

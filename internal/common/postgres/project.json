@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "name": "db",
+  "projectType": "library",
+  "sourceRoot": "internal/common/postgres",
+  "targets": {
+    "build:sqlc": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "go tool sqlc generate" },
+      "inputs": [
+        "{workspaceRoot}/sqlc.yaml",
+        "{workspaceRoot}/internal/*/infra/repo/postgres/query/*.sql",
+        "{workspaceRoot}/internal/*/infra/repo/postgres/schema/*.sql"
+      ],
+      "outputs": ["{workspaceRoot}/internal/companies/infra/repo/postgres/gen", "{workspaceRoot}/internal/dividends/infra/repo/postgres/gen"],
+      "cache": true
+    },
+    "vet:sqlc": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "go tool sqlc vet" }
+    },
+    "check-generated": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build:sqlc"],
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "command": "git diff --exit-code -- internal/companies/infra/repo/postgres/gen internal/dividends/infra/repo/postgres/gen"
+      }
+    }
+  },
+  "tags": ["lang:go", "type:db"]
+}

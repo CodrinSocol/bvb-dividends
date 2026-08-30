@@ -1,9 +1,18 @@
-.bin/
+# Anything the build produces, or that belongs to a developer's machine, rather
+# than to the source the image is built from.
 .git/
 .nx/
 dist/
-node_modules/
-apps/web/node_modules/
+web/dist/
+
+# Installed dependencies are installed again inside the image: a node_modules
+# from the host is built for the host's platform, and copying it over the one
+# the image installed leaves a tree that resolves on neither.
+**/node_modules/
+
+# The build tools are pinned in tools/go.mod and are not needed to build the
+# binary.
 tools/
+
 *.md
 .env
