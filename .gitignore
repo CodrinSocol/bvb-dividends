@@ -20,3 +20,9 @@ dist/
 .idea/
 .vscode/
 .DS_Store
+
+# The web build. The directory itself is committed, with only a placeholder in
+# it, because the Go binary embeds it and go:embed fails on a directory that
+# does not exist; what vite writes into it is not committed.
+/web/dist/*
+!/web/dist/.gitkeep

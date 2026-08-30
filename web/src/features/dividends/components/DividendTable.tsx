@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
-import type { Dividend } from '../api/client';
-import { companyOf, describeState, formatDate, formatMoney } from '../lib/format';
+import { Link } from '@tanstack/react-router';
+import type { Dividend } from '../services/dividendsService';
+import { companyOf, formatDate, formatMoney } from '../../../shared/utils/format';
+import { describeState } from '../types/state';
 
 export function DividendTable({ dividends }: { dividends: Dividend[] }) {
   if (dividends.length === 0) {
@@ -31,11 +32,15 @@ export function DividendTable({ dividends }: { dividends: Dividend[] }) {
             return (
               <tr key={dividend.name}>
                 <td>
-                  <Link to={`/companies/${symbol}`} className="link link-hover font-medium">
+                  <Link
+                    to="/companies/$symbol"
+                    params={{ symbol }}
+                    className="link link-hover font-medium"
+                  >
                     {symbol}
                   </Link>
                 </td>
-                <td>{dividend.year ?? '—'}</td>
+                <td>{dividend.year || '—'}</td>
                 <td className="text-right font-mono">
                   {formatMoney(dividend.grossPerShareNaturalPerson)}
                 </td>
