@@ -22,7 +22,8 @@ VALUES ($1, $2)
 ON CONFLICT (symbol) DO UPDATE
     SET display_name = EXCLUDED.display_name,
         update_time  = now()
-WHERE company.companies.display_name IS DISTINCT FROM EXCLUDED.display_name
+WHERE NULLIF(EXCLUDED.display_name, '') IS NOT NULL
+  AND company.companies.display_name IS DISTINCT FROM EXCLUDED.display_name
 RETURNING symbol, display_name, create_time, update_time
 `
 
@@ -41,6 +42,10 @@ type UpsertCompanyParams struct {
 // "last changed" rather than "last seen by the importer", which is what
 // AIP-142's update_time is defined to mean. A company whose name BVB has not
 // changed is therefore not returned, and does not count as written.
+//
+// A company discovered by ticker alone - which is how the whole-market listing
+// reports one - carries no name, so an unnamed re-import is not allowed to
+// blank the name a dividend import has since filled in.
 //
 // The previous service inserted only when absent, so a company that changed
 // its legal name kept the old one forever.

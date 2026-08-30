@@ -12,7 +12,16 @@ import (
 )
 
 // Namespace is the XML namespace of the BVB financials service.
-const Namespace = "http://www.bvb.ro/"
+//
+// It has no trailing slash. The SOAPAction header does have one, because it
+// names the operation within the namespace rather than the namespace itself.
+// Getting this wrong is not an error the service reports as one: it accepts the
+// request, binds none of the parameters, and answers with an empty result.
+const Namespace = "http://www.bvb.ro"
+
+// soapActionPrefix is what an operation name is appended to for the SOAPAction
+// header.
+const soapActionPrefix = Namespace + "/"
 
 // soapEnvelope is the SOAP 1.1 envelope, used for both directions.
 type soapEnvelope struct {
@@ -63,7 +72,7 @@ func (c *Client) call(ctx context.Context, action string, in, out any) error {
 		return fmt.Errorf("build %s request: %w", action, err)
 	}
 	request.Header.Set("Content-Type", "text/xml; charset=utf-8")
-	request.Header.Set("SOAPAction", `"`+Namespace+action+`"`)
+	request.Header.Set("SOAPAction", `"`+soapActionPrefix+action+`"`)
 	request.Header.Set("Accept", "text/xml")
 
 	response, err := c.httpClient.Do(request)

@@ -106,6 +106,39 @@ func (c *Client) GetLastDividends(ctx context.Context, days int) ([]Identificati
 	return response.Result.Identifications, nil
 }
 
+// GetAvailableBalances returns every issuer that filed a balance of the given
+// kind for the given year.
+//
+// It is the closest the service comes to enumerating the companies listed on
+// BVB: there is no operation that returns them, and GetLastDividends only names
+// the ones that announced a dividend recently. A year the filing season has not
+// reached yet returns nothing rather than failing, so a caller after the whole
+// market should ask for more than one.
+func (c *Client) GetAvailableBalances(
+	ctx context.Context,
+	year int,
+	reportType ReportType,
+) ([]SymbolBalance, error) {
+	if year <= 0 {
+		return nil, fmt.Errorf("%w: year must be positive, got %d", ErrInvalidArgument, year)
+	}
+	if reportType == "" {
+		return nil, fmt.Errorf("%w: report type is empty", ErrInvalidArgument)
+	}
+
+	request := getAvailableBalances{Year: year, ReportType: reportType}
+
+	var response getAvailableBalancesResponse
+	err := c.retry(ctx, func() error {
+		return c.call(ctx, "GetAvailableBalances", request, &response)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get the issuers filing %s balances for %d: %w", reportType, year, err)
+	}
+
+	return response.Result.Balances, nil
+}
+
 // GetDividends returns every dividend BVB has recorded for one ticker symbol.
 func (c *Client) GetDividends(ctx context.Context, symbol string) ([]DividendInfo, error) {
 	if symbol == "" {

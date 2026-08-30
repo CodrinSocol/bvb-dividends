@@ -1,41 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  A recorded-shape GetLastDividends response.
+  A GetLastDividends response, recorded from the live service and trimmed.
 
-  It exercises the cases the mapper has to survive: the same company appearing
-  twice because it announced twice inside the window (BVB returns one entry per
-  announcement, not per company), surrounding whitespace on a company name, a
-  lower-case symbol, and an entry with no usable symbol at all.
+  The first four entries are as BVB sent them, and show the shape the mapping
+  has to survive: one entry per announcement rather than per company, so a
+  company that announced in several years appears once per year.
+
+  The last two are added, because the recorded window happened not to contain
+  them and the mapping has to cope with both: a lower-case symbol, and an entry
+  with no usable symbol at all.
 -->
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <soap:Body>
-    <GetLastDividendsResponse xmlns="http://www.bvb.ro/">
+    <GetLastDividendsResponse xmlns="http://www.bvb.ro">
       <GetLastDividendsResult>
         <DividendIdentification>
           <Symbol>SNP</Symbol>
           <Company>
             <CompanyName>OMV PETROM S.A.</CompanyName>
+            <FiscalCode>1590082</FiscalCode>
           </Company>
+          <Year>2025</Year>
+        </DividendIdentification>
+        <DividendIdentification>
+          <Symbol>SNP</Symbol>
+          <Company>
+            <CompanyName>OMV PETROM S.A.</CompanyName>
+            <FiscalCode>1590082</FiscalCode>
+          </Company>
+          <Year>2024</Year>
         </DividendIdentification>
         <DividendIdentification>
           <Symbol>TLV</Symbol>
           <Company>
             <CompanyName>  BANCA TRANSILVANIA S.A.  </CompanyName>
+            <FiscalCode>5022670</FiscalCode>
           </Company>
+          <Year>2024</Year>
+        </DividendIdentification>
+        <DividendIdentification>
+          <Symbol>AAG</Symbol>
+          <Company>
+            <CompanyName>AAGES S.A.</CompanyName>
+            <FiscalCode>1196550</FiscalCode>
+          </Company>
+          <Year>2023</Year>
         </DividendIdentification>
         <DividendIdentification>
           <Symbol>snp</Symbol>
           <Company>
             <CompanyName>OMV PETROM S.A.</CompanyName>
+            <FiscalCode>1590082</FiscalCode>
           </Company>
+          <Year>2022</Year>
         </DividendIdentification>
         <DividendIdentification>
-          <Symbol></Symbol>
+          <Symbol />
           <Company>
             <CompanyName>UNKNOWN ISSUER</CompanyName>
+            <FiscalCode>0</FiscalCode>
           </Company>
+          <Year>2023</Year>
         </DividendIdentification>
       </GetLastDividendsResult>
     </GetLastDividendsResponse>

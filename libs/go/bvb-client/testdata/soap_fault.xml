@@ -1,11 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- What BVB returns when it understands the request and refuses it. -->
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<!--
+  A fault, recorded from the live service.
+
+  This is what it answers when it understands the request and refuses it; the
+  message is its own, and is what has to reach the caller rather than an empty
+  result. This particular one was produced by sending the request in the wrong
+  XML namespace, so the service could not bind the parameters.
+-->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <soap:Body>
     <soap:Fault>
       <faultcode>soap:Server</faultcode>
-      <faultstring>Server was unable to process request. ---&gt; Invalid identity type.</faultstring>
-      <detail />
+      <faultstring>System.Web.Services.Protocols.SoapException: The parameterized query '(@identity nvarchar(4000))declare @symbol varchar(255);select to' expects the parameter '@identity', which was not supplied.
+   at FinancialsService.GetDividends(SecurityIdentification IdentityType, String Identity)</faultstring>
+      <faultactor>Dividends</faultactor>
+      <detail>
+        <Error xmlns="http://www.bvb.ro">
+          <ErrorNumber>2000</ErrorNumber>
+          <ErrorMessage>The parameterized query '(@identity nvarchar(4000))declare @symbol varchar(255);select to' expects the parameter '@identity', which was not supplied.</ErrorMessage>
+          <ErrorSource>Dividends</ErrorSource>
+        </Error>
+      </detail>
     </soap:Fault>
   </soap:Body>
 </soap:Envelope>

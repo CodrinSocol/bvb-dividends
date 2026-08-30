@@ -71,8 +71,8 @@ func TestGetLastDividendsReturnsEveryIdentification(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetLastDividends: %v", err)
 	}
-	if len(identifications) != 4 {
-		t.Fatalf("got %d identifications, want 4: %+v", len(identifications), identifications)
+	if len(identifications) != 6 {
+		t.Fatalf("got %d identifications, want 6: %+v", len(identifications), identifications)
 	}
 	if got, want := identifications[0].Symbol, "SNP"; got != want {
 		t.Errorf("first symbol = %q, want %q", got, want)
@@ -91,7 +91,7 @@ func TestGetLastDividendsReturnsEveryIdentification(t *testing.T) {
 	if !strings.Contains(request.ContentType, "text/xml") {
 		t.Errorf("Content-Type = %q, want text/xml", request.ContentType)
 	}
-	for _, fragment := range []string{"<GetLastDividends", `xmlns="http://www.bvb.ro/"`, "<noDays>20</noDays>"} {
+	for _, fragment := range []string{"<GetLastDividends", `xmlns="http://www.bvb.ro"`, "<NoDays>20</NoDays>"} {
 		if !strings.Contains(request.Body, fragment) {
 			t.Errorf("request body is missing %q:\n%s", fragment, request.Body)
 		}
@@ -115,40 +115,44 @@ func TestGetDividendsReadsEveryReportedField(t *testing.T) {
 	if got, want := full.Year, 2024; got != want {
 		t.Errorf("year = %d, want %d", got, want)
 	}
-	if got, want := deref(full.DividendForNaturalPersons), "0.0345"; got != want {
+	if got, want := full.DividendForNaturalPersons, "0.044400"; got != want {
 		t.Errorf("per-share amount = %q, want %q", got, want)
 	}
-	if got, want := deref(full.DividendsTotal), "2085123456.7890"; got != want {
+	if got, want := full.DividendsTotal, "2766638017.3800"; got != want {
 		t.Errorf("total = %q, want %q exactly", got, want)
 	}
-	if got, want := deref(full.ExDividendDate), "2025-06-10T00:00:00"; got != want {
+	if got, want := full.ExDividendDate, "2025-05-12T00:00:00"; got != want {
 		t.Errorf("ex-dividend date = %q, want %q", got, want)
 	}
 	if got, want := full.MethodOfDividendDistribution, "Bank transfer / Depozitarul Central"; got != want {
 		t.Errorf("distribution method = %q, want %q", got, want)
 	}
 
-	// A dividend announced but not yet scheduled. An absent element must stay a
-	// nil pointer rather than becoming an empty string, so that the caller can
-	// still tell "not reported" from "reported as nothing".
+	// A dividend announced but not yet scheduled. BVB marks an unreported value
+	// with xsi:nil rather than omitting the element, so it reads as empty - and
+	// empty is what the caller has to treat as "not reported", because zero is a
+	// different thing.
 	announced := dividends[1]
-	if announced.DividendsTotal != nil {
-		t.Errorf("an unreported total was read as %q", *announced.DividendsTotal)
+	if announced.DividendsTotal != "" {
+		t.Errorf("an unreported total was read as %q", announced.DividendsTotal)
 	}
-	if announced.ExDividendDate != nil {
-		t.Errorf("an unreported ex-dividend date was read as %q", *announced.ExDividendDate)
+	if announced.ExDividendDate != "" {
+		t.Errorf("an unreported ex-dividend date was read as %q", announced.ExDividendDate)
 	}
-	if announced.AnnouncementDate == nil {
+	if announced.AnnouncementDate == "" {
 		t.Error("a reported announcement date was read as absent")
 	}
 
-	// A value BVB reported in an unusable form is still handed over verbatim;
+	// The one element the service spells with an underscore.
+	if got, want := dividends[0].GMSDate, "2025-04-24T00:00:00"; got != want {
+		t.Errorf("GMS_Date = %q, want %q", got, want)
+	}
 	// this library does not decide that it is unusable.
 	partial := dividends[2]
-	if partial.DividendForNaturalPersons == nil {
+	if partial.DividendForNaturalPersons == "" {
 		t.Error("an unparseable amount was dropped instead of being passed through")
 	}
-	if got, want := deref(partial.DividendsTotal), "1500000"; got != want {
+	if got, want := partial.DividendsTotal, "1500000"; got != want {
 		t.Errorf("total = %q, want %q; a bad sibling field spoiled it", got, want)
 	}
 
@@ -156,7 +160,7 @@ func TestGetDividendsReadsEveryReportedField(t *testing.T) {
 	if got, want := request.SOAPAction, `"http://www.bvb.ro/GetDividends"`; got != want {
 		t.Errorf("SOAPAction = %s, want %s", got, want)
 	}
-	for _, fragment := range []string{"<identityType>Symbol</identityType>", "<identity>SNP</identity>"} {
+	for _, fragment := range []string{"<IdentityType>Symbol</IdentityType>", "<Identity>SNP</Identity>"} {
 		if !strings.Contains(request.Body, fragment) {
 			t.Errorf("request body is missing %q:\n%s", fragment, request.Body)
 		}
@@ -174,7 +178,7 @@ func TestSOAPFaultIsAnError(t *testing.T) {
 	if err == nil {
 		t.Fatal("a SOAP fault was reported as success")
 	}
-	if !strings.Contains(err.Error(), "Invalid identity type") {
+	if !strings.Contains(err.Error(), "which was not supplied") {
 		t.Errorf("error = %v, want it to carry the fault message", err)
 	}
 }
@@ -253,8 +257,8 @@ func TestTransportFailureIsRetried(t *testing.T) {
 	if calls != 3 {
 		t.Errorf("made %d calls, want 3", calls)
 	}
-	if len(identifications) != 4 {
-		t.Errorf("got %d identifications after retrying, want 4", len(identifications))
+	if len(identifications) != 6 {
+		t.Errorf("got %d identifications after retrying, want 6", len(identifications))
 	}
 }
 
@@ -292,9 +296,50 @@ func TestNonPositiveWindowIsRefused(t *testing.T) {
 	}
 }
 
-func deref(s *string) string {
-	if s == nil {
-		return ""
+// The whole-market listing is how the import learns which companies exist at
+// all: the service has no operation that returns them, and GetLastDividends
+// names only the ones that announced recently.
+func TestGetAvailableBalances(t *testing.T) {
+	client, requests := serveGolden(t, "get_available_balances.xml", http.StatusOK)
+
+	balances, err := client.GetAvailableBalances(t.Context(), 2024, bvbclient.ReportTypeAnnual)
+	if err != nil {
+		t.Fatalf("GetAvailableBalances: %v", err)
 	}
-	return *s
+	if len(balances) != 5 {
+		t.Fatalf("got %d balances, want 5: %+v", len(balances), balances)
+	}
+	if got, want := balances[0].Symbol, "2P"; got != want {
+		t.Errorf("first symbol = %q, want %q", got, want)
+	}
+	if got, want := balances[0].ReportType, bvbclient.ReportTypeAnnual; got != want {
+		t.Errorf("report type = %q, want %q", got, want)
+	}
+
+	request := (*requests)[0]
+	if got, want := request.SOAPAction, `"http://www.bvb.ro/GetAvailableBalances"`; got != want {
+		t.Errorf("SOAPAction = %s, want %s", got, want)
+	}
+	for _, fragment := range []string{"<Year>2024</Year>", "<ReportType>Annual</ReportType>"} {
+		if !strings.Contains(request.Body, fragment) {
+			t.Errorf("request body is missing %q:\n%s", fragment, request.Body)
+		}
+	}
+}
+
+// A year the filing season has not reached, and a missing report type, are
+// refused here rather than sent: the service answers both with an empty result,
+// which reads downstream as "the exchange has no companies".
+func TestGetAvailableBalancesRefusesAnUnusableRequest(t *testing.T) {
+	client, requests := serveGolden(t, "get_available_balances.xml", http.StatusOK)
+
+	if _, err := client.GetAvailableBalances(t.Context(), 0, bvbclient.ReportTypeAnnual); err == nil {
+		t.Error("a year of zero was accepted")
+	}
+	if _, err := client.GetAvailableBalances(t.Context(), 2024, ""); err == nil {
+		t.Error("an empty report type was accepted")
+	}
+	if len(*requests) != 0 {
+		t.Errorf("made %d requests, want none", len(*requests))
+	}
 }

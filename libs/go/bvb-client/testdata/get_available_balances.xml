@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A GetAvailableBalances response, recorded from the live service and trimmed
+  to five of the three hundred and eleven issuers it returned.
+
+  The entries carry no company name: this operation identifies an issuer by
+  ticker and nothing else, which is why a company discovered this way is stored
+  under its symbol and named once its dividends are read.
+-->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Body>
+    <GetAvailableBalancesResponse xmlns="http://www.bvb.ro">
+      <GetAvailableBalancesResult>
+        <SymbolBalanceTypeIdentification>
+          <Symbol>2P</Symbol>
+          <Year>2024</Year>
+          <ReportType>Annual</ReportType>
+          <BalanceType>Company</BalanceType>
+        </SymbolBalanceTypeIdentification>
+        <SymbolBalanceTypeIdentification>
+          <Symbol>4RT</Symbol>
+          <Year>2024</Year>
+          <ReportType>Annual</ReportType>
+          <BalanceType>Company</BalanceType>
+        </SymbolBalanceTypeIdentification>
+        <SymbolBalanceTypeIdentification>
+          <Symbol>SNP</Symbol>
+          <Year>2024</Year>
+          <ReportType>Annual</ReportType>
+          <BalanceType>Company</BalanceType>
+        </SymbolBalanceTypeIdentification>
+        <SymbolBalanceTypeIdentification>
+          <Symbol>TLV</Symbol>
+          <Year>2024</Year>
+          <ReportType>Annual</ReportType>
+          <BalanceType>Bank</BalanceType>
+        </SymbolBalanceTypeIdentification>
+        <SymbolBalanceTypeIdentification>
+          <Symbol />
+          <Year>2024</Year>
+          <ReportType>Annual</ReportType>
+          <BalanceType>Company</BalanceType>
+        </SymbolBalanceTypeIdentification>
+      </GetAvailableBalancesResult>
+    </GetAvailableBalancesResponse>
+  </soap:Body>
+</soap:Envelope>

@@ -1,47 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  A recorded-shape GetDividends response for one company.
+  A GetDividends response for one company, recorded from the live service and
+  trimmed to three of the twenty-five entries it returned.
 
-  The three entries cover the states a dividend passes through: fully scheduled
-  and paid, announced with no dates or amounts settled yet, and one where BVB
-  reported a value in a form that cannot be read. None of them may cost the
-  others their import.
+  The first is as BVB sent it, and shows two things the mapping depends on: an
+  unreported value arrives as an empty element carrying xsi:nil rather than
+  being omitted, and GMS_Date is the one element the service spells with an
+  underscore.
+
+  The second and third are added, because the recorded response happened not to
+  contain either and both have to survive the mapping: a dividend announced with
+  nothing settled yet, and one where a value arrived in a form that cannot be
+  read. Neither may cost the other its import.
 -->
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <soap:Body>
-    <GetDividendsResponse xmlns="http://www.bvb.ro/">
+    <GetDividendsResponse xmlns="http://www.bvb.ro">
       <GetDividendsResult>
+        <Company>
+          <CompanyName>OMV PETROM S.A.</CompanyName>
+          <FiscalCode>1590082</FiscalCode>
+        </Company>
         <Dividends>
           <DividendInfo>
             <Year>2024</Year>
-            <DividendForNaturalPersons>0.0345</DividendForNaturalPersons>
-            <DividendForLegalPersons>0.0345</DividendForLegalPersons>
-            <DividendsTotal>2085123456.7890</DividendsTotal>
-            <DividendType>cash</DividendType>
-            <ReferenceDateForGMS>2025-03-14T00:00:00</ReferenceDateForGMS>
-            <GMSDate>2025-04-24T00:00:00</GMSDate>
-            <RecordDate>2025-06-11T00:00:00</RecordDate>
-            <ExDividendDate>2025-06-10T00:00:00</ExDividendDate>
-            <AnnouncementDate>2025-03-01T00:00:00</AnnouncementDate>
-            <StartPaymentDate>2025-06-25T00:00:00</StartPaymentDate>
-            <EndPaymentDate>2025-12-31T00:00:00</EndPaymentDate>
+            <DividendForNaturalPersons>0.044400</DividendForNaturalPersons>
+            <DividendForLegalPersons>0.044400</DividendForLegalPersons>
+            <DividendsTotal>2766638017.3800</DividendsTotal>
+            <DividendType>gross</DividendType>
+            <ReferenceDateForGMS xsi:nil="true" />
+            <GMS_Date>2025-04-24T00:00:00</GMS_Date>
+            <RecordDate>2025-05-13T00:00:00</RecordDate>
+            <ExDividendDate>2025-05-12T00:00:00</ExDividendDate>
+            <AnnouncementDate>2025-02-04T00:00:00</AnnouncementDate>
+            <StartPaymentDate>2025-06-03T00:00:00</StartPaymentDate>
+            <EndPaymentDate xsi:nil="true" />
             <MethodOfDividendDistribution>Bank transfer / Depozitarul Central</MethodOfDividendDistribution>
           </DividendInfo>
           <DividendInfo>
             <Year>2025</Year>
-            <DividendType>cash</DividendType>
+            <DividendForNaturalPersons xsi:nil="true" />
+            <DividendForLegalPersons xsi:nil="true" />
+            <DividendsTotal xsi:nil="true" />
+            <DividendType>gross</DividendType>
+            <ReferenceDateForGMS xsi:nil="true" />
+            <GMS_Date xsi:nil="true" />
+            <RecordDate xsi:nil="true" />
+            <ExDividendDate xsi:nil="true" />
             <AnnouncementDate>2026-02-18T00:00:00</AnnouncementDate>
-            <MethodOfDividendDistribution></MethodOfDividendDistribution>
+            <StartPaymentDate xsi:nil="true" />
+            <EndPaymentDate xsi:nil="true" />
+            <MethodOfDividendDistribution />
           </DividendInfo>
           <DividendInfo>
             <Year>2023</Year>
             <DividendForNaturalPersons>not reported</DividendForNaturalPersons>
+            <DividendForLegalPersons xsi:nil="true" />
             <DividendsTotal>1500000</DividendsTotal>
             <DividendType>stock</DividendType>
-            <ExDividendDate>11/06/2024</ExDividendDate>
+            <ReferenceDateForGMS xsi:nil="true" />
+            <GMS_Date xsi:nil="true" />
             <RecordDate>2024-06-12T00:00:00</RecordDate>
+            <ExDividendDate>11/06/2024</ExDividendDate>
+            <AnnouncementDate xsi:nil="true" />
+            <StartPaymentDate xsi:nil="true" />
+            <EndPaymentDate xsi:nil="true" />
             <MethodOfDividendDistribution>Share allotment</MethodOfDividendDistribution>
           </DividendInfo>
         </Dividends>

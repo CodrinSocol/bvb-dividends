@@ -24,6 +24,12 @@ type Repository interface {
 // import depends on the shape of the data rather than on the fact that BVB
 // speaks SOAP.
 type Source interface {
+	// All returns every company the service knows of, whether or not it has
+	// announced a dividend recently. It is what a first import uses, so that
+	// the dividends import has the whole market to ask about rather than only
+	// the companies that happened to announce inside a window.
+	All(ctx context.Context) ([]*Company, error)
+
 	// RecentlyAnnouncing returns the companies that announced a dividend
 	// within the last days days.
 	RecentlyAnnouncing(ctx context.Context, days int) ([]*Company, error)

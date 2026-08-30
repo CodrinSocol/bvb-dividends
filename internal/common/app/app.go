@@ -92,17 +92,26 @@ func Run(opts ...fx.Option) {
 	)...).Run()
 }
 
-// RunTask starts only what a background task needs — configuration, logging and
-// the database, with its migrations — runs the invoked function, and shuts down
-// again.
+// Task is a unit of work a one-shot run performs.
+type Task func(ctx context.Context) error
+
+// RunTask starts only what a background task needs - configuration, logging and
+// the database, with its migrations - runs the task, and shuts down again.
 //
 // It is how `bvb-dividends import` and `bvb-dividends migrate` run: the same
 // wiring as the service, without opening a port, so a one-shot run cannot
 // collide with a running instance.
-func RunTask(ctx context.Context, invoke any, opts ...fx.Option) error {
+//
+// newTask is a constructor for the [Task], taking whatever it depends on. The
+// task is built during startup but run after it, because fx runs every invoke
+// before any start hook: run from an invoke, an import would reach the database
+// before the database had applied its migrations.
+func RunTask(ctx context.Context, newTask any, opts ...fx.Option) error {
+	var task Task
+
 	application := fx.New(slices.Concat(
 		core(),
-		[]fx.Option{fx.Invoke(invoke)},
+		[]fx.Option{fx.Provide(newTask), fx.Populate(&task)},
 		opts,
 	)...)
 
@@ -110,5 +119,11 @@ func RunTask(ctx context.Context, invoke any, opts ...fx.Option) error {
 		return errors.WithStack(err)
 	}
 
-	return errors.WithStack(application.Stop(ctx))
+	taskErr := task(ctx)
+
+	if err := application.Stop(ctx); err != nil && taskErr == nil {
+		return errors.WithStack(err)
+	}
+
+	return taskErr
 }

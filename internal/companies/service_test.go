@@ -15,8 +15,16 @@ func quietLogger() *slog.Logger { return slog.New(slog.NewTextHandler(io.Discard
 // fakeSource stands in for BVB.
 type fakeSource struct {
 	companies []*companies.Company
+	all       []*companies.Company
+	calledAll bool
 	err       error
 	days      int
+}
+
+func (f *fakeSource) All(context.Context) ([]*companies.Company, error) {
+	f.calledAll = true
+
+	return f.all, f.err
 }
 
 func (f *fakeSource) RecentlyAnnouncing(_ context.Context, days int) ([]*companies.Company, error) {
@@ -70,12 +78,15 @@ func (f *fakeRepository) Upsert(_ context.Context, list ...*companies.Company) (
 	return len(list), nil
 }
 
-// An empty database means nothing has ever been imported, so the first run asks
-// for the whole history rather than for yesterday.
-func TestImportBackfillsAnEmptyDatabase(t *testing.T) {
+// An empty database means nothing has ever been imported, so the first run takes
+// the whole market rather than a window of announcements: the dividends import
+// fetches against the symbols this one returns, and starting from the companies
+// that happened to announce recently would leave the rest of the exchange
+// unasked about indefinitely.
+func TestFirstImportTakesTheWholeMarket(t *testing.T) {
 	t.Parallel()
 
-	source := &fakeSource{companies: []*companies.Company{{Symbol: "SNP", DisplayName: "OMV PETROM S.A."}}}
+	source := &fakeSource{all: []*companies.Company{{Symbol: "SNP"}, {Symbol: "TLV"}}}
 	repo := newFakeRepository()
 	svc := companies.NewService(quietLogger(), repo, source)
 
@@ -84,14 +95,31 @@ func TestImportBackfillsAnEmptyDatabase(t *testing.T) {
 		t.Fatalf("ImportCompanies: %v", err)
 	}
 
-	if source.days != companies.BackfillDays {
-		t.Errorf("asked for %d days, want the backfill window of %d", source.days, companies.BackfillDays)
+	if !source.calledAll {
+		t.Error("the first import asked for a window of announcements, not the whole market")
 	}
-	if result.Window != companies.BackfillDays {
-		t.Errorf("reported window = %d, want %d", result.Window, companies.BackfillDays)
+	if !result.All {
+		t.Error("the result does not report that the whole market was taken")
 	}
-	if len(result.Symbols) != 1 || result.Symbols[0] != "SNP" {
-		t.Errorf("symbols = %v, want [SNP]", result.Symbols)
+	if len(result.Symbols) != 2 {
+		t.Errorf("symbols = %v, want both", result.Symbols)
+	}
+}
+
+// The flag asks for the whole market again later, when the exchange has changed.
+func TestImportHonoursTheAllFlag(t *testing.T) {
+	t.Parallel()
+
+	source := &fakeSource{all: []*companies.Company{{Symbol: "SNP"}}}
+	repo := newFakeRepository(&companies.Company{Symbol: "TLV"})
+	svc := companies.NewService(quietLogger(), repo, source)
+
+	if _, err := svc.ImportCompanies(t.Context(), companies.ImportCompaniesCommand{All: true}); err != nil {
+		t.Fatalf("ImportCompanies: %v", err)
+	}
+
+	if !source.calledAll {
+		t.Error("--all did not take the whole market")
 	}
 }
 

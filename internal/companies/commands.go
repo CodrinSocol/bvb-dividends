@@ -7,24 +7,22 @@ import (
 	"github.com/CodrinSocol/bvb-dividends-ro/internal/common"
 )
 
-// Import windows, in days.
-const (
-	// BackfillDays is how far back the first import reaches. BVB's service
-	// takes a window in days, so twenty years of history is asked for as a
-	// number of days, the same way the previous service did it.
-	BackfillDays = 20 * 365
+// IncrementalDays is the window of a routine run. The import runs daily, so
+// one day covers everything announced since the last run.
+const IncrementalDays = 1
 
-	// IncrementalDays is the window of a routine run. The import runs daily, so
-	// one day covers everything announced since the last run.
-	IncrementalDays = 1
-)
-
-// ImportCompaniesCommand commands one import of the companies that have
-// announced a dividend.
+// ImportCompaniesCommand commands one import of the companies this service
+// knows about.
 type ImportCompaniesCommand struct {
-	// Days is the window to ask BVB for. Zero selects it automatically: a full
-	// backfill when nothing has been imported yet, one day otherwise.
+	// Days is the window of announcements to ask BVB for. Zero selects the
+	// scope automatically: the whole market when nothing has been imported
+	// yet, one day of announcements otherwise.
 	Days int
+
+	// All imports every company the service knows of rather than only those
+	// that announced inside the window. A first import does this anyway; the
+	// flag is for asking for it again later, when the market has changed.
+	All bool
 
 	// DryRun fetches and maps everything but writes nothing, so a run can be
 	// checked against the live service without touching the database.
@@ -38,8 +36,12 @@ type ImportCompaniesCommand struct {
 // messages, and so that the symbols it saw can be handed to the dividends
 // import without reading them back out of the database.
 type ImportCompaniesResult struct {
-	// Window is the number of days the import asked BVB for.
+	// Window is the number of days the import asked BVB for, or zero when it
+	// took the whole market instead.
 	Window int
+
+	// All reports whether the whole market was taken.
+	All bool
 
 	// Symbols are the companies BVB reported, deduplicated.
 	Symbols []common.Symbol
@@ -55,6 +57,7 @@ type ImportCompaniesResult struct {
 func (r ImportCompaniesResult) LogValue() slog.Value {
 	return slog.GroupValue(
 		slog.Int("window_days", r.Window),
+		slog.Bool("whole_market", r.All),
 		slog.Int("companies_seen", len(r.Symbols)),
 		slog.Int("companies_written", r.Written),
 		slog.Duration("duration", r.Duration),

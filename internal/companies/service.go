@@ -58,7 +58,17 @@ func (svc *Service) Exists(ctx context.Context, symbol common.Symbol) (bool, err
 	return exists, nil
 }
 
-// ImportCompanies refreshes the companies that have announced a dividend.
+// importScope is what one import run decided to ask BVB for.
+type importScope struct {
+	// all takes every company the service knows of.
+	all bool
+
+	// window is how many days of announcements to ask for, when not taking the
+	// whole market.
+	window int
+}
+
+// ImportCompanies refreshes the companies this service knows about.
 //
 // It returns the symbols it saw, which is what the dividends import needs: the
 // two slices fetch from BVB separately, and this is the only thing that passes
@@ -69,24 +79,29 @@ func (svc *Service) ImportCompanies(
 ) (ImportCompaniesResult, error) {
 	started := time.Now()
 
-	window, err := svc.window(ctx, cmd)
+	scope, err := svc.scope(ctx, cmd)
 	if err != nil {
 		return ImportCompaniesResult{}, err
 	}
 
 	svc.log.InfoContext(ctx, "importing companies from BVB",
-		slog.Int("window_days", window),
+		slog.Bool("whole_market", scope.all),
+		slog.Int("window_days", scope.window),
 		slog.Bool("dry_run", cmd.DryRun))
 
-	companies, err := svc.source.RecentlyAnnouncing(ctx, window)
+	list, err := svc.fetch(ctx, scope)
 	if err != nil {
-		return ImportCompaniesResult{}, errors.Wrap(err, "list companies announcing dividends")
+		return ImportCompaniesResult{}, err
 	}
 
-	result := ImportCompaniesResult{Window: window, Symbols: symbolsOf(companies)}
+	result := ImportCompaniesResult{
+		Window:  scope.window,
+		All:     scope.all,
+		Symbols: symbolsOf(list),
+	}
 
-	if !cmd.DryRun && len(companies) > 0 {
-		written, err := svc.repo.Upsert(ctx, companies...)
+	if !cmd.DryRun && len(list) > 0 {
+		written, err := svc.repo.Upsert(ctx, list...)
 		if err != nil {
 			return ImportCompaniesResult{}, errors.Wrap(err, "store companies")
 		}
@@ -100,26 +115,53 @@ func (svc *Service) ImportCompanies(
 	return result, nil
 }
 
-// window decides how far back to ask BVB for announcements.
-func (svc *Service) window(ctx context.Context, cmd ImportCompaniesCommand) (int, error) {
+// scope decides what to ask BVB for.
+//
+// An empty database means nothing has ever been imported, so the first run
+// takes the whole market: the dividends import fetches against the symbols this
+// one returns, and starting from only the companies that announced inside a
+// window would leave the rest of the exchange unasked about indefinitely.
+func (svc *Service) scope(ctx context.Context, cmd ImportCompaniesCommand) (importScope, error) {
+	if cmd.All {
+		return importScope{all: true}, nil
+	}
 	if cmd.Days > 0 {
-		return cmd.Days, nil
+		return importScope{window: cmd.Days}, nil
 	}
 
 	count, err := svc.repo.Count(ctx)
 	if err != nil {
-		return 0, errors.Wrap(err, "decide import window")
+		return importScope{}, errors.Wrap(err, "decide the import scope")
 	}
 	if count == 0 {
-		return BackfillDays, nil
+		return importScope{all: true}, nil
 	}
 
-	return IncrementalDays, nil
+	return importScope{window: IncrementalDays}, nil
 }
 
-func symbolsOf(companies []*Company) []common.Symbol {
-	symbols := make([]common.Symbol, len(companies))
-	for i, company := range companies {
+// fetch reads the companies the scope asks for.
+func (svc *Service) fetch(ctx context.Context, scope importScope) ([]*Company, error) {
+	if scope.all {
+		list, err := svc.source.All(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "list every company")
+		}
+
+		return list, nil
+	}
+
+	list, err := svc.source.RecentlyAnnouncing(ctx, scope.window)
+	if err != nil {
+		return nil, errors.Wrap(err, "list companies announcing dividends")
+	}
+
+	return list, nil
+}
+
+func symbolsOf(list []*Company) []common.Symbol {
+	symbols := make([]common.Symbol, len(list))
+	for i, company := range list {
 		symbols[i] = company.Symbol
 	}
 
