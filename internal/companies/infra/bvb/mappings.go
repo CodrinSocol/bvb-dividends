@@ -43,3 +43,33 @@ func toCompanies(identifications []bvbclient.Identification, log *slog.Logger) [
 
 	return result
 }
+
+// toCompaniesFromSymbols converts a list of tickers into companies, discarding
+// duplicates and anything unusable.
+//
+// The result carries no display name, because the operation these symbols come
+// from reports none.
+func toCompaniesFromSymbols(symbols []string, log *slog.Logger) []*companies.Company {
+	result := make([]*companies.Company, 0, len(symbols))
+	seen := make(map[common.Symbol]struct{}, len(symbols))
+
+	for _, raw := range symbols {
+		symbol, err := common.ParseSymbol(raw)
+		if err != nil {
+			log.Warn("skipping an issuer with an unusable symbol",
+				slog.String("symbol", raw),
+				slog.Any("err", err))
+
+			continue
+		}
+
+		if _, duplicate := seen[symbol]; duplicate {
+			continue
+		}
+		seen[symbol] = struct{}{}
+
+		result = append(result, &companies.Company{Symbol: symbol})
+	}
+
+	return result
+}

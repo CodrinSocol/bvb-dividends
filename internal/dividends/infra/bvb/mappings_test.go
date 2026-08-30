@@ -27,8 +27,6 @@ func (f *fakeClient) GetDividends(_ context.Context, symbol string) ([]bvbclient
 
 func quietLogger() *slog.Logger { return slog.New(slog.NewTextHandler(io.Discard, nil)) }
 
-func ptr(s string) *string { return &s }
-
 func fetch(t *testing.T, infos []bvbclient.DividendInfo) []*dividends.Dividend {
 	t.Helper()
 
@@ -50,17 +48,17 @@ func TestFullyReportedDividend(t *testing.T) {
 
 	result := fetch(t, []bvbclient.DividendInfo{{
 		Year:                         2024,
-		DividendForNaturalPersons:    ptr("0.0345"),
-		DividendForLegalPersons:      ptr("0.0345"),
-		DividendsTotal:               ptr("2085123456.7890"),
+		DividendForNaturalPersons:    "0.0345",
+		DividendForLegalPersons:      "0.0345",
+		DividendsTotal:               "2085123456.7890",
 		DividendType:                 " cash ",
-		ReferenceDateForGMS:          ptr("2025-03-14T00:00:00"),
-		GMSDate:                      ptr("2025-04-24T00:00:00"),
-		RecordDate:                   ptr("2025-06-11T00:00:00"),
-		ExDividendDate:               ptr("2025-06-10T00:00:00"),
-		AnnouncementDate:             ptr("2025-03-01T00:00:00"),
-		StartPaymentDate:             ptr("2025-06-25T00:00:00"),
-		EndPaymentDate:               ptr("2025-12-31T00:00:00"),
+		ReferenceDateForGMS:          "2025-03-14T00:00:00",
+		GMSDate:                      "2025-04-24T00:00:00",
+		RecordDate:                   "2025-06-11T00:00:00",
+		ExDividendDate:               "2025-06-10T00:00:00",
+		AnnouncementDate:             "2025-03-01T00:00:00",
+		StartPaymentDate:             "2025-06-25T00:00:00",
+		EndPaymentDate:               "2025-12-31T00:00:00",
 		MethodOfDividendDistribution: "Bank transfer / Depozitarul Central",
 	}})
 
@@ -107,7 +105,7 @@ func TestAnnouncedButUnscheduledDividend(t *testing.T) {
 	result := fetch(t, []bvbclient.DividendInfo{{
 		Year:             2025,
 		DividendType:     "cash",
-		AnnouncementDate: ptr("2026-02-18T00:00:00"),
+		AnnouncementDate: "2026-02-18T00:00:00",
 	}})
 
 	dividend := result[0]
@@ -132,11 +130,11 @@ func TestAnUnreadableValueSpoilsOnlyItsOwnField(t *testing.T) {
 
 	result := fetch(t, []bvbclient.DividendInfo{{
 		Year:                         2023,
-		DividendForNaturalPersons:    ptr("not reported"),
-		DividendsTotal:               ptr("1500000"),
+		DividendForNaturalPersons:    "not reported",
+		DividendsTotal:               "1500000",
 		DividendType:                 "stock",
-		ExDividendDate:               ptr("11/06/2024"),
-		RecordDate:                   ptr("2024-06-12T00:00:00"),
+		ExDividendDate:               "11/06/2024",
+		RecordDate:                   "2024-06-12T00:00:00",
 		MethodOfDividendDistribution: "Share allotment",
 	}})
 
@@ -169,7 +167,7 @@ func TestDateLayouts(t *testing.T) {
 		t.Run(raw, func(t *testing.T) {
 			t.Parallel()
 
-			result := fetch(t, []bvbclient.DividendInfo{{Year: 2024, ExDividendDate: ptr(raw)}})
+			result := fetch(t, []bvbclient.DividendInfo{{Year: 2024, ExDividendDate: raw}})
 			if got := result[0].Schedule.ExDividendDate.String(); got != "2025-06-10" {
 				t.Errorf("%q read as %q, want 2025-06-10", raw, got)
 			}

@@ -70,8 +70,8 @@ func toDividend(symbol common.Symbol, info bvbclient.DividendInfo, log *slog.Log
 
 // parseAmount reads a reported decimal, treating an absent or unparseable value
 // as "not reported" rather than as zero.
-func parseAmount(raw *string, field string, symbol common.Symbol, log *slog.Logger) common.Amount {
-	text := trimmed(raw)
+func parseAmount(raw string, field string, symbol common.Symbol, log *slog.Logger) common.Amount {
+	text := strings.TrimSpace(raw)
 	if text == "" {
 		return common.NoAmount
 	}
@@ -90,8 +90,8 @@ func parseAmount(raw *string, field string, symbol common.Symbol, log *slog.Logg
 }
 
 // parseDate reads a reported xsd:dateTime as a calendar date.
-func parseDate(raw *string, field string, symbol common.Symbol, log *slog.Logger) common.Date {
-	text := trimmed(raw)
+func parseDate(raw string, field string, symbol common.Symbol, log *slog.Logger) common.Date {
+	text := strings.TrimSpace(raw)
 	if text == "" {
 		return common.NoDate
 	}
@@ -108,14 +108,4 @@ func parseDate(raw *string, field string, symbol common.Symbol, log *slog.Logger
 		slog.String("value", text))
 
 	return common.NoDate
-}
-
-// trimmed reads an optional reported value, mapping both "absent" and "present
-// but blank" to the empty string.
-func trimmed(raw *string) string {
-	if raw == nil {
-		return ""
-	}
-
-	return strings.TrimSpace(*raw)
 }

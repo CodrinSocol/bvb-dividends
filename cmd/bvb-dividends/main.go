@@ -21,6 +21,10 @@ import (
 	"os"
 	"slices"
 
+	// The scheduled import runs at noon Europe/Bucharest, and the image the
+	// binary ships in carries no zone database, so it carries its own.
+	_ "time/tzdata"
+
 	"go.uber.org/fx"
 
 	apispec "github.com/CodrinSocol/bvb-dividends-ro/api/proto/gen"
@@ -78,6 +82,7 @@ func usage() {
 import flags:
   -days N        how many days back to ask BVB for; 0 backfills on an empty
                  database and imports one day otherwise
+  -all           import every company BVB knows of, not only those announcing
   -dry-run       fetch and map everything, write nothing
   -concurrency N how many companies to fetch at once
 `)
@@ -114,6 +119,8 @@ func runImport(cfg Config, args []string) error {
 	flags := flag.NewFlagSet("import", flag.ExitOnError)
 	days := flags.Int("days", 0,
 		"how many days back to import; 0 backfills on an empty database and imports one day otherwise")
+	all := flags.Bool("all", false,
+		"import every company BVB knows of, not only those that announced inside the window")
 	dryRun := flags.Bool("dry-run", false, "fetch and map everything but write nothing")
 	concurrency := flags.Int("concurrency", cfg.Import.Concurrency, "how many companies to fetch at once")
 
@@ -121,11 +128,13 @@ func runImport(cfg Config, args []string) error {
 		return err
 	}
 
-	options := refreshOptions{Days: *days, DryRun: *dryRun, Concurrency: *concurrency}
+	options := refreshOptions{Days: *days, All: *all, DryRun: *dryRun, Concurrency: *concurrency}
 
 	return app.RunTask(context.Background(),
-		func(log *slog.Logger, companiesSvc *companies.Service, dividendsSvc *dividends.Service) error {
-			return refresh(context.Background(), log, companiesSvc, dividendsSvc, options)
+		func(log *slog.Logger, companiesSvc *companies.Service, dividendsSvc *dividends.Service) app.Task {
+			return func(ctx context.Context) error {
+				return refresh(ctx, log, companiesSvc, dividendsSvc, options)
+			}
 		},
 		slices.Concat(bvbOptions(cfg.BVB), companiesOptions(), dividendsOptions())...,
 	)
@@ -143,15 +152,14 @@ func runMigrate(cfg Config) error {
 	}
 
 	return app.RunTask(context.Background(),
-		// The hook is appended after the database's own, so it runs after the
-		// schemas have been applied rather than before: fx runs an invoke before
-		// the lifecycle it registers.
-		func(lc fx.Lifecycle, log *slog.Logger, _ *commonpg.DB) {
-			lc.Append(fx.Hook{OnStart: func(ctx context.Context) error {
+		// The database applies the schemas as it starts, so by the time the task
+		// runs there is nothing left to do but say so.
+		func(log *slog.Logger, _ *commonpg.DB) app.Task {
+			return func(ctx context.Context) error {
 				log.InfoContext(ctx, "migrations applied")
 
 				return nil
-			}})
+			}
 		},
 		slices.Concat(bvbOptions(cfg.BVB), companiesOptions(), dividendsOptions())...,
 	)

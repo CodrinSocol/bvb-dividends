@@ -78,9 +78,14 @@ func importOptions(cfg ImportConfig) []fx.Option {
 
 // refreshOptions are the choices one import run makes.
 type refreshOptions struct {
-	// Days is the window to ask BVB for. Zero lets the companies slice decide:
-	// a full backfill when nothing has been imported yet, one day otherwise.
+	// Days is the window of announcements to ask BVB for. Zero lets the
+	// companies slice decide the scope:
+	// the whole market when nothing has been imported yet, one day otherwise.
 	Days int
+
+	// All imports every company BVB knows of rather than only those that
+	// announced inside the window.
+	All bool
 
 	// DryRun fetches and maps everything but writes nothing.
 	DryRun bool
@@ -108,6 +113,7 @@ func refresh(
 ) error {
 	companiesResult, err := companiesSvc.ImportCompanies(ctx, companies.ImportCompaniesCommand{
 		Days:   options.Days,
+		All:    options.All,
 		DryRun: options.DryRun,
 	})
 	if err != nil {
