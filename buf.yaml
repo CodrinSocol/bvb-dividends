@@ -1,32 +1,24 @@
 # buf workspace configuration.
 #
-# `proto/` holds this project's API definition and is linted and checked for
-# breaking changes. `third_party/googleapis` holds a vendored subset of
-# googleapis, needed because the Buf Schema Registry is unreachable from the
-# build environment; it is compiled but not checked, since it is not ours.
+# The API definition lives in api/proto/bvb-dividends and is linted and checked
+# for breaking changes. Everything it imports - the Google API common types and
+# protovalidate - is resolved from the Buf Schema Registry rather than vendored.
 version: v2
+deps:
+  - buf.build/bufbuild/protovalidate
+  - buf.build/gnostic/gnostic
+  - buf.build/googleapis/googleapis
 modules:
-  - path: proto
-    lint:
-      use:
-        - STANDARD
-      except:
-        # AIP-131 requires the standard Get method to return the resource
-        # itself (`GetCompany` returns `Company`), which is exactly what these
-        # two buf rules forbid. The AIPs are the contract here, so buf yields.
-        - RPC_RESPONSE_STANDARD_NAME
-        - RPC_REQUEST_RESPONSE_UNIQUE
-    breaking:
-      use:
-        - FILE
-  - path: third_party/googleapis
-    lint:
-      use:
-        - MINIMAL
-      ignore:
-        - third_party/googleapis
-    breaking:
-      use:
-        - FILE
-      ignore:
-        - third_party/googleapis
+  - path: api/proto/bvb-dividends
+lint:
+  use:
+    - STANDARD
+  except:
+    # AIP-131 requires the standard Get method to return the resource itself
+    # (GetCompany returns Company), which is exactly what these two buf rules
+    # forbid. The AIPs are the contract here, so buf yields.
+    - RPC_RESPONSE_STANDARD_NAME
+    - RPC_REQUEST_RESPONSE_UNIQUE
+breaking:
+  use:
+    - FILE
