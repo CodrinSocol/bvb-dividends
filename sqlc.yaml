@@ -1,20 +1,37 @@
 # Type-safe Go from hand-written SQL.
 #
-# sqlc covers the queries whose shape is fixed. The List queries are not here:
-# their WHERE clause is compiled from an AIP-160 filter expression at request
-# time, so they are built (parameterised) in libs/postgres/query_builder.go.
+# Each vertical slice has a block of its own: its schema, its queries and its
+# own generated package, so a slice's SQL never reaches another's. sqlc is run
+# from the repository root, which is where the Nx target and the go.work
+# workspace put it.
+#
+# The List queries are not generated: their WHERE clause is compiled from an
+# AIP-160 filter at request time, so they are built - parameterised - by
+# internal/common/postgres.
 version: "2"
+overrides:
+  go:
+    overrides:
+      - db_type: timestamptz
+        nullable: false
+        go_type: time.Time
+      - db_type: timestamptz
+        nullable: true
+        go_type:
+          type: Time
+          import: time
+          pointer: true
+      - db_type: uuid
+        go_type: github.com/google/uuid.UUID
 sql:
   - engine: postgresql
-    schema: libs/postgres/migrations
-    queries: libs/postgres/queries
+    schema: internal/companies/infra/repo/postgres/schema
+    queries: internal/companies/infra/repo/postgres/query
     gen:
       go:
-        package: sqlcgen
-        out: libs/postgres/sqlcgen
+        out: internal/companies/infra/repo/postgres/gen
+        package: gen
         sql_package: pgx/v5
+        emit_db_tags: true
+        emit_json_tags: true
         emit_empty_slices: true
-        emit_pointers_for_null_types: false
-        overrides:
-          - db_type: uuid
-            go_type: github.com/google/uuid.UUID

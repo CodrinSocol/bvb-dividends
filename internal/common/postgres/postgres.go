@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/url"
 	"sort"
+	"strings"
 
 	"github.com/cockroachdb/errors"
 	"github.com/golang-migrate/migrate/v4"
@@ -102,12 +103,51 @@ func (mt migrationType) plural() string {
 	return "schemas"
 }
 
+// ConfigFromURL parses a libpq connection string into a [Config].
+//
+// It exists for the integration tests, which are pointed at a database by URL
+// rather than by the environment the service reads.
+func ConfigFromURL(connectionURL string) (Config, error) {
+	u, err := url.Parse(connectionURL)
+	if err != nil {
+		return Config{}, errors.Wrap(err, "parse database url")
+	}
+
+	password, _ := u.User.Password()
+
+	sslMode := u.Query().Get("sslmode")
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
+	return Config{
+		ApplyMigrations: true,
+		Host:            u.Hostname(),
+		Port:            u.Port(),
+		Database:        strings.TrimPrefix(u.Path, "/"),
+		User:            u.User.Username(),
+		Password:        password,
+		SSLMode:         sslMode,
+	}, nil
+}
+
 // NewDB creates a new instance of [DB].
 func NewDB(ctx context.Context, log *slog.Logger, namespaces []*Namespace) (*DB, error) {
 	cfg, err := config.Load[Config]()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
+	return NewDBWithConfig(ctx, log, cfg, namespaces)
+}
+
+// NewDBWithConfig creates a [DB] from an explicit configuration.
+func NewDBWithConfig(
+	ctx context.Context,
+	log *slog.Logger,
+	cfg Config,
+	namespaces []*Namespace,
+) (*DB, error) {
 
 	orderedNamespaces, err := orderNamespaces(namespaces)
 	if err != nil {

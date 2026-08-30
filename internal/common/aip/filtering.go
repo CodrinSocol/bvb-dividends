@@ -237,6 +237,39 @@ func WithExtraDeclarations(procedure string, decls ...filtering.DeclarationOptio
 	}
 }
 
+// CompileFilter parses filter against the fields resource declares, and returns
+// it ready for a repository to translate.
+//
+// It is what the interceptor does to every request, exposed so that the whole
+// path from a filter expression to the SQL it becomes can be exercised in one
+// test rather than in two halves that agree with each other by assumption.
+func CompileFilter(resource proto.Message, filter string, extra ...filtering.DeclarationOption) (common.Filter, error) {
+	declarations, err := deriveDeclarations(resource, extra...)
+	if err != nil {
+		return common.Filter{}, errors.WithStack(err)
+	}
+
+	return compileFilter(declarations, filter)
+}
+
+// compileFilter parses and rewrites one filter expression.
+func compileFilter(declarations *filtering.Declarations, filter string) (common.Filter, error) {
+	parsed, err := filtering.ParseFilterString(filter, declarations)
+	if err != nil {
+		return common.Filter{}, common.ErrFilterInvalid.WithUnderlying(err)
+	}
+
+	if parsed.CheckedExpr == nil {
+		return common.NewFilterEmpty(), nil
+	}
+
+	normalizeAIPtoCEL(parsed.CheckedExpr.GetExpr(), parsed.CheckedExpr.GetTypeMap())
+	rewriteNullComparisons(parsed.CheckedExpr.GetExpr())
+	flattenIdents(parsed.CheckedExpr.GetExpr())
+
+	return common.Filter{Ast: cel.CheckedExprToAst(parsed.CheckedExpr)}, nil
+}
+
 // NewFilteringInterceptor creates a [connect.UnaryInterceptorFunc] that parses
 // the AIP-160 filter of a request and puts it on the context as a
 // [common.Filter].
@@ -275,17 +308,9 @@ func NewFilteringInterceptor(resources map[string]proto.Message, opts ...Filteri
 				return nil, errors.New("no filtering resource configured for procedure: " + procedure)
 			}
 
-			f, err := filtering.ParseFilter(filteringReq, declarations)
+			filter, err := compileFilter(declarations, filteringReq.GetFilter())
 			if err != nil {
-				return nil, common.ErrFilterInvalid.WithUnderlying(err)
-			}
-
-			var filter common.Filter
-			if f.CheckedExpr != nil {
-				normalizeAIPtoCEL(f.CheckedExpr.GetExpr(), f.CheckedExpr.GetTypeMap())
-				rewriteNullComparisons(f.CheckedExpr.GetExpr())
-				flattenIdents(f.CheckedExpr.GetExpr())
-				filter.Ast = cel.CheckedExprToAst(f.CheckedExpr)
+				return nil, errors.WithStack(err)
 			}
 
 			return next(contextWithFilter(ctx, filter), req)

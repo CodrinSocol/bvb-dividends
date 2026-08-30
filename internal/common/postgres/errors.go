@@ -40,3 +40,7 @@ func AsConstraintViolation(err error) (error, bool) {
 func IsNoRows(err error) bool {
 	return errors.Is(err, pgx.ErrNoRows)
 }
+
+// ErrNoRows is pgx's "no rows" sentinel, re-exported so that a repository can
+// match on it without importing the driver.
+var ErrNoRows = pgx.ErrNoRows
