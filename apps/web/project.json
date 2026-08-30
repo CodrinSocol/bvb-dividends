@@ -1,0 +1,38 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "web",
+  "projectType": "application",
+  "sourceRoot": "apps/web/src",
+  "targets": {
+    "api-types": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["proto:generate"],
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "command": "bunx openapi-typescript libs/apiserver/openapi/openapi.yaml -o apps/web/src/api/schema.d.ts"
+      },
+      "inputs": ["{workspaceRoot}/libs/apiserver/openapi/openapi.yaml"],
+      "outputs": ["{projectRoot}/src/api/schema.d.ts"],
+      "cache": true
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["api-types"],
+      "options": { "cwd": "{projectRoot}", "command": "bunx tsc --noEmit" },
+      "cache": true
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["typecheck"],
+      "options": { "cwd": "{projectRoot}", "command": "bunx vite build" },
+      "outputs": ["{workspaceRoot}/dist/apps/web"],
+      "cache": true
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["api-types"],
+      "options": { "cwd": "{projectRoot}", "command": "bunx vite" }
+    }
+  },
+  "tags": ["lang:ts", "type:app"]
+}

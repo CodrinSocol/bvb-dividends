@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A recorded-shape GetLastDividends response.
+
+  It exercises the cases the mapper has to survive: the same company appearing
+  twice because it announced twice inside the window (BVB returns one entry per
+  announcement, not per company), surrounding whitespace on a company name, a
+  lower-case symbol, and an entry with no usable symbol at all.
+-->
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Body>
+    <GetLastDividendsResponse xmlns="http://www.bvb.ro/">
+      <GetLastDividendsResult>
+        <DividendIdentification>
+          <Symbol>SNP</Symbol>
+          <Company>
+            <CompanyName>OMV PETROM S.A.</CompanyName>
+          </Company>
+        </DividendIdentification>
+        <DividendIdentification>
+          <Symbol>TLV</Symbol>
+          <Company>
+            <CompanyName>  BANCA TRANSILVANIA S.A.  </CompanyName>
+          </Company>
+        </DividendIdentification>
+        <DividendIdentification>
+          <Symbol>snp</Symbol>
+          <Company>
+            <CompanyName>OMV PETROM S.A.</CompanyName>
+          </Company>
+        </DividendIdentification>
+        <DividendIdentification>
+          <Symbol></Symbol>
+          <Company>
+            <CompanyName>UNKNOWN ISSUER</CompanyName>
+          </Company>
+        </DividendIdentification>
+      </GetLastDividendsResult>
+    </GetLastDividendsResponse>
+  </soap:Body>
+</soap:Envelope>

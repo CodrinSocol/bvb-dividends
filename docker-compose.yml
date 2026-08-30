@@ -1,0 +1,25 @@
+# Local development dependencies.
+#
+# The password below is a development-only default and is overridden by
+# POSTGRES_PASSWORD from .env. Nothing here is used in a deployed environment.
+services:
+  postgres:
+    container_name: bvb-dividends-postgres
+    image: postgres:16.4
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5555}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bvb_dividends}
+      POSTGRES_USER: ${POSTGRES_USER:-bvb_dividends}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bvb_dividends} -d ${POSTGRES_DB:-bvb_dividends}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

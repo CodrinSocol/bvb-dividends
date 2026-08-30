@@ -1,0 +1,20 @@
+# Type-safe Go from hand-written SQL.
+#
+# sqlc covers the queries whose shape is fixed. The List queries are not here:
+# their WHERE clause is compiled from an AIP-160 filter expression at request
+# time, so they are built (parameterised) in libs/postgres/query_builder.go.
+version: "2"
+sql:
+  - engine: postgresql
+    schema: libs/postgres/migrations
+    queries: libs/postgres/queries
+    gen:
+      go:
+        package: sqlcgen
+        out: libs/postgres/sqlcgen
+        sql_package: pgx/v5
+        emit_empty_slices: true
+        emit_pointers_for_null_types: false
+        overrides:
+          - db_type: uuid
+            go_type: github.com/google/uuid.UUID

@@ -20,7 +20,7 @@ plugins:
       - paths=source_relative
       - generate_unbound_methods=false
   - local: .bin/protoc-gen-openapi
-    out: docs/openapi
+    out: libs/apiserver/openapi
     opt:
       - title=BVB Dividends API
       - version=v1
