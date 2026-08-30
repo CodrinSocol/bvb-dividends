@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
@@ -10,7 +10,7 @@ export function Layout({ children }: { children: ReactNode }) {
             BVB Dividends
           </Link>
           <span className="text-sm opacity-60">Bursa de Valori București</span>
-          <a href="/docs" className="btn btn-ghost btn-sm ml-auto">
+          <a href="/api/docs" className="btn btn-ghost btn-sm ml-auto">
             API docs
           </a>
         </div>

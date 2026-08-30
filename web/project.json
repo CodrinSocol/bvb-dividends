@@ -1,0 +1,32 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "web",
+  "projectType": "application",
+  "sourceRoot": "web/src",
+  "targets": {
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["proto:generate"],
+      "options": { "cwd": "{projectRoot}", "command": "bunx tsc --noEmit" },
+      "cache": true
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["typecheck"],
+      "options": { "cwd": "{projectRoot}", "command": "bunx vite build" },
+      "outputs": ["{projectRoot}/dist"],
+      "cache": true
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{projectRoot}", "command": "bunx vitest run" },
+      "cache": true
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["proto:generate"],
+      "options": { "cwd": "{projectRoot}", "command": "bunx vite" }
+    }
+  },
+  "tags": ["lang:ts", "type:app"]
+}
