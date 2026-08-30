@@ -4,33 +4,11 @@
   "projectType": "library",
   "sourceRoot": "proto",
   "targets": {
-    "tools": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "./scripts/build-go-tools.sh",
-        "cwd": "{workspaceRoot}"
-      },
-      "inputs": [
-        "{workspaceRoot}/tools/go.mod",
-        "{workspaceRoot}/tools/go.sum",
-        "{workspaceRoot}/scripts/build-go-tools.sh"
-      ],
-      "outputs": [
-        "{workspaceRoot}/.bin"
-      ],
-      "cache": true
-    },
     "lint": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "tools"
-      ],
       "options": {
         "cwd": "{workspaceRoot}",
-        "commands": [
-          "node_modules/.bin/buf lint",
-          "./scripts/api-lint.sh"
-        ],
+        "commands": ["go tool buf lint", "./scripts/api-lint.sh"],
         "parallel": false
       },
       "inputs": [
@@ -42,23 +20,17 @@
     },
     "breaking": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "tools"
-      ],
       "options": {
         "cwd": "{workspaceRoot}",
-        "command": "node_modules/.bin/buf breaking --against '.git#branch=main'"
+        "command": "go tool buf breaking --against '.git#branch=main'"
       }
     },
     "generate": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "tools"
-      ],
       "options": {
         "cwd": "{workspaceRoot}",
         "commands": [
-          "node_modules/.bin/buf generate proto",
+          "go tool buf generate proto",
           "python3 scripts/fix-openapi-dates.py"
         ],
         "parallel": false
@@ -77,17 +49,12 @@
     },
     "check-generated": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "generate"
-      ],
+      "dependsOn": ["generate"],
       "options": {
         "cwd": "{workspaceRoot}",
         "command": "git diff --exit-code -- libs/genproto libs/apiserver/openapi"
       }
     }
   },
-  "tags": [
-    "lang:proto",
-    "type:api"
-  ]
+  "tags": ["lang:proto", "type:api"]
 }

@@ -26,4 +26,4 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 1
 fi
 
-exec .bin/goose -dir libs/postgres/migrations postgres "$DATABASE_URL" "$@"
+exec go tool goose -dir libs/postgres/migrations postgres "$DATABASE_URL" "$@"
