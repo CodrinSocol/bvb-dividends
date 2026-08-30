@@ -35,3 +35,18 @@ sql:
         emit_db_tags: true
         emit_json_tags: true
         emit_empty_slices: true
+  - engine: postgresql
+    # The dividends table references company.companies, so sqlc needs the
+    # companies schema loaded first to resolve the foreign key.
+    schema:
+      - internal/companies/infra/repo/postgres/schema
+      - internal/dividends/infra/repo/postgres/schema
+    queries: internal/dividends/infra/repo/postgres/query
+    gen:
+      go:
+        out: internal/dividends/infra/repo/postgres/gen
+        package: gen
+        sql_package: pgx/v5
+        emit_db_tags: true
+        emit_json_tags: true
+        emit_empty_slices: true
