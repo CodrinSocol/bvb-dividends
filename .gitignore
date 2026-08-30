@@ -1,6 +1,3 @@
-# Build tool binaries (rebuilt from tools/go.mod by scripts/build-go-tools.sh)
-/.bin/
-
 # Node / Bun
 node_modules/
 dist/

@@ -48,7 +48,7 @@ func get(t *testing.T, handler http.Handler, path string, query url.Values) (int
 		target += "?" + query.Encode()
 	}
 	recorder := httptest.NewRecorder()
-	handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, target, nil))
+	handler.ServeHTTP(recorder, httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, nil))
 
 	var body map[string]any
 	if recorder.Body.Len() > 0 {
@@ -256,7 +256,7 @@ func TestServesItsOwnSpecification(t *testing.T) {
 	handler := newHandler(t, nil, nil)
 
 	recorder := httptest.NewRecorder()
-	handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/openapi.yaml", nil))
+	handler.ServeHTTP(recorder, httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/openapi.yaml", nil))
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", recorder.Code)
 	}
@@ -277,7 +277,7 @@ func TestCORSAllowsOnlyConfiguredOrigins(t *testing.T) {
 	}
 	for origin, want := range tests {
 		t.Run(origin, func(t *testing.T) {
-			request := httptest.NewRequest(http.MethodGet, "/v1/companies", nil)
+			request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/v1/companies", nil)
 			request.Header.Set("Origin", origin)
 			recorder := httptest.NewRecorder()
 			handler.ServeHTTP(recorder, request)

@@ -37,12 +37,6 @@ jobs:
         with:
           bun-version: 1.3.11
 
-      - name: Cache the pinned protobuf and SQL tools
-        uses: actions/cache@v4
-        with:
-          path: .bin
-          key: go-tools-${{ runner.os }}-${{ hashFiles('tools/go.sum', 'scripts/build-go-tools.sh') }}
-
       - run: bun install --frozen-lockfile
 
       # Enforces the AIPs against the proto descriptors. This is the check that
@@ -88,29 +82,17 @@ jobs:
             go.sum
             tools/go.sum
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.11
-
-      - uses: actions/cache@v4
-        with:
-          path: .bin
-          key: go-tools-${{ runner.os }}-${{ hashFiles('tools/go.sum', 'scripts/build-go-tools.sh') }}
-
-      - run: bun install --frozen-lockfile
-
       - name: Verify the migrations apply from an empty database
         run: |
-          bunx nx run proto:tools
-          DATABASE_URL="$TEST_DATABASE_URL" .bin/goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
-          DATABASE_URL="$TEST_DATABASE_URL" .bin/goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" down-to 0
-          DATABASE_URL="$TEST_DATABASE_URL" .bin/goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
+          go tool goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
+          go tool goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" down-to 0
+          go tool goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
 
       - run: go vet ./...
 
-      - uses: golangci/golangci-lint-action@v6
-        with:
-          version: v2.5.0
+      # The linter is pinned in tools/go.mod, so CI and a developer's machine
+      # run the same version.
+      - run: go tool golangci-lint run
 
       - name: Test
         run: go test -race -count=1 ./...

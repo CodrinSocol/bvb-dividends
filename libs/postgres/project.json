@@ -28,9 +28,6 @@
     },
     "migrate-up": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "proto:tools"
-      ],
       "options": {
         "command": "./scripts/migrate.sh up",
         "cwd": "{workspaceRoot}"
@@ -38,9 +35,6 @@
     },
     "migrate-down": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "proto:tools"
-      ],
       "options": {
         "command": "./scripts/migrate.sh down",
         "cwd": "{workspaceRoot}"
@@ -48,9 +42,6 @@
     },
     "migrate-status": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "proto:tools"
-      ],
       "options": {
         "command": "./scripts/migrate.sh status",
         "cwd": "{workspaceRoot}"
@@ -58,9 +49,6 @@
     },
     "migrate-create": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "proto:tools"
-      ],
       "options": {
         "command": "./scripts/migrate.sh create {args.name} sql",
         "cwd": "{workspaceRoot}"
@@ -68,11 +56,8 @@
     },
     "sqlc-generate": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "proto:tools"
-      ],
       "options": {
-        "command": ".bin/sqlc generate",
+        "command": "go tool sqlc generate",
         "cwd": "{workspaceRoot}"
       },
       "inputs": [
@@ -97,11 +82,8 @@
     },
     "sqlc-vet": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "proto:tools"
-      ],
       "options": {
-        "command": ".bin/sqlc vet",
+        "command": "go tool sqlc vet",
         "cwd": "{workspaceRoot}"
       }
     }
