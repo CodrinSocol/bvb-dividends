@@ -1,29 +1,42 @@
 # Code generation from the proto API definition.
 #
-# Plugins are the pinned binaries in .bin/ built from tools/go.mod, because the
-# Buf Schema Registry (and therefore remote plugins) is unreachable here.
-# Only `proto/` is generated; third_party/googleapis already has published Go
-# packages, which its own `go_package` options point at.
+# The protos are the single source of truth: the Go server stubs, the
+# TypeScript client the web app uses, and the OpenAPI document are all
+# generated from them, and all of the generated output is committed so that
+# editors and gopls work without a build step.
 version: v2
+inputs:
+  - directory: api/proto/bvb-dividends
 plugins:
-  - local: .bin/protoc-gen-go
-    out: libs/genproto
-    opt: paths=source_relative
-  - local: .bin/protoc-gen-go-grpc
-    out: libs/genproto
+  # Go. The module option strips the go_package prefix, so the files land in
+  # libs/go/gen/v1 rather than under the full import path.
+  - remote: buf.build/protocolbuffers/go:v1.36.12
+    out: libs/go
     opt:
-      - paths=source_relative
-      - require_unimplemented_servers=false
-  - local: .bin/protoc-gen-grpc-gateway
-    out: libs/genproto
+      - module=github.com/CodrinSocol/bvb-dividends-ro/libs/go
+  - remote: buf.build/connectrpc/go:v1.19.1
+    out: libs/go
     opt:
-      - paths=source_relative
-      - generate_unbound_methods=false
-  - local: .bin/protoc-gen-openapi
-    out: libs/apiserver/openapi
+      - module=github.com/CodrinSocol/bvb-dividends-ro/libs/go
+  # Resource-name helpers for the google.api.resource patterns, so a resource
+  # name is parsed against the pattern the proto declares rather than against a
+  # string written out a second time in Go.
+  - local: ["go", "tool", "go.einride.tech/aip/cmd/protoc-gen-go-aip"]
+    out: libs/go
     opt:
-      - title=BVB Dividends API
-      - version=v1
-      - naming=json
-      - enum_type=string
-      - default_response=false
+      - module=github.com/CodrinSocol/bvb-dividends-ro/libs/go
+  # TypeScript
+  - remote: buf.build/bufbuild/es:v2.11.0
+    out: libs/ts/gen
+    include_imports: true
+    opt:
+      - target=ts
+      - ts_nocheck=true # the generated files are not ours to type-check
+  # OpenAPI. The path prefix matches where the vanguard transcoder is mounted,
+  # so the document describes the URLs the service actually serves.
+  - remote: buf.build/community/sudorandom-connect-openapi:v0.25.1
+    out: api/proto/gen
+    opt:
+      - content-types=json
+      - path=bvb-dividends.openapi.yaml
+      - path-prefix=/api

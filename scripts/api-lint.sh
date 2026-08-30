@@ -18,7 +18,7 @@ trap 'rm -f "$descriptor"' EXIT
 go tool buf build --as-file-descriptor-set -o "$descriptor" 2>/dev/null
 
 # Lint only this project's protos; everything imported is a dependency.
-mapfile -t protos < <(cd proto && find . -name '*.proto' | sed 's|^\./||' | sort)
+mapfile -t protos < <(cd api/proto/bvb-dividends && find . -name '*.proto' | sed 's|^\./||' | sort)
 
 go tool api-linter \
   --config api-linter.yaml \

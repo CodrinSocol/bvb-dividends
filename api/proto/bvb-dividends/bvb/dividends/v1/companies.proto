@@ -1,0 +1,150 @@
+// Copyright 2026 The BVB Dividends Authors.
+//
+// The companies slice of the public API: companies listed on the Bucharest
+// Stock Exchange that have announced at least one dividend.
+
+syntax = "proto3";
+
+package bvb.dividends.v1;
+
+import "buf/validate/validate.proto";
+import "gnostic/openapi/v3/annotations.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/CodrinSocol/bvb-dividends-ro/libs/go/gen/v1;bvbdividendsv1";
+option java_multiple_files = true;
+option java_outer_classname = "CompaniesProto";
+option java_package = "com.bvb.dividends.v1";
+
+// The document-level metadata of the generated OpenAPI specification.
+//
+// It is declared here rather than patched into the generated document
+// afterwards, so the protos remain the single source of truth for the whole
+// contract, including how it describes itself.
+option (gnostic.openapi.v3.document) = {
+  info: {
+    title: "BVB Dividends API"
+    version: "v1"
+    description: "A read-only API over the dividends announced on the Bucharest Stock Exchange (Bursa de Valori Bucuresti). The service speaks both the Connect protocol and the REST mapping described here; they are the same handlers, transcoded."
+  }
+};
+
+// Read-only access to the companies known to this service.
+//
+// Companies are discovered by the daily import from the BVB financials web
+// service; they are never created through this API. Every method is public,
+// unauthenticated, safe and idempotent.
+service CompaniesService {
+  option (google.api.default_host) = "bvb-dividends.example.com";
+
+  // Lists companies known to have announced dividends.
+  rpc ListCompanies(ListCompaniesRequest) returns (ListCompaniesResponse) {
+    option (google.api.http) = {get: "/v1/companies"};
+  }
+
+  // Gets a single company.
+  rpc GetCompany(GetCompanyRequest) returns (Company) {
+    option (google.api.http) = {get: "/v1/{name=companies/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// A company listed on the Bucharest Stock Exchange (Bursa de Valori Bucuresti).
+message Company {
+  option (google.api.resource) = {
+    type: "bvb-dividends.example.com/Company"
+    pattern: "companies/{company}"
+    singular: "company"
+    plural: "companies"
+  };
+
+  // Identifier. The resource name of the company.
+  //
+  // Format: `companies/{company}`, where `{company}` is the BVB ticker symbol,
+  // for example `companies/SNP`.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Output only. The BVB ticker symbol, for example `SNP`.
+  //
+  // This is the same value as the `{company}` segment of `name`, exposed as a
+  // field for convenience and filtering.
+  string symbol = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The full legal name of the company, for example
+  // `OMV PETROM S.A.`, as reported by BVB.
+  string display_name = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The time this company was first imported from BVB.
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The time this company was last refreshed from BVB.
+  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// Request message for
+// [CompaniesService.ListCompanies][bvb.dividends.v1.CompaniesService.ListCompanies].
+message ListCompaniesRequest {
+  // Optional. The maximum number of companies to return.
+  //
+  // The service may return fewer. If unspecified, at most 50 companies are
+  // returned. The maximum value is 1000.
+  int32 page_size = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).ignore = IGNORE_IF_ZERO_VALUE,
+    (buf.validate.field).int32 = {
+      gte: 0
+      lte: 1000
+    }
+  ];
+
+  // Optional. A page token received from a previous `ListCompanies` call.
+  //
+  // Provide this to retrieve the subsequent page. When paginating, all other
+  // parameters must match the call that provided the page token.
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. An [AIP-160](https://google.aip.dev/160) filter expression.
+  //
+  // Filterable fields: `symbol`, `display_name`, `create_time`, `update_time`.
+  //
+  // Example: `symbol = "SNP" OR display_name : "BANCA"`.
+  string filter = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. A comma-separated list of fields to sort by, as described in
+  // [AIP-132](https://google.aip.dev/132).
+  //
+  // Sortable fields: `symbol`, `display_name`, `create_time`, `update_time`.
+  // The default is `symbol`. Append ` desc` to a field to reverse its order,
+  // for example `display_name desc`.
+  string order_by = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [CompaniesService.ListCompanies][bvb.dividends.v1.CompaniesService.ListCompanies].
+message ListCompaniesResponse {
+  // The companies on this page, in the requested order.
+  repeated Company companies = 1;
+
+  // A token to retrieve the next page, or empty if this is the last page.
+  string next_page_token = 2;
+
+  // The total number of companies matching the filter, across all pages.
+  int32 total_size = 3;
+}
+
+// Request message for
+// [CompaniesService.GetCompany][bvb.dividends.v1.CompaniesService.GetCompany].
+message GetCompanyRequest {
+  // Required. The resource name of the company.
+  //
+  // Format: `companies/{company}`, for example `companies/SNP`.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "bvb-dividends.example.com/Company"},
+    (buf.validate.field).string.pattern = "^companies/[^/]+$"
+  ];
+}

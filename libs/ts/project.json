@@ -1,0 +1,6 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "libs-ts-gen",
+  "projectType": "library",
+  "tags": ["lang:ts", "type:gen"]
+}
