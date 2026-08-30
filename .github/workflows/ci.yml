@@ -42,7 +42,7 @@ jobs:
       # Enforces the AIPs against the proto descriptors. This is the check that
       # makes "AIP-compliant" a property of the build rather than a claim.
       - name: Lint the API against the AIPs
-        run: bunx nx run proto:lint
+        run: bunx nx run proto:lint:proto
 
       - name: Check for breaking API changes
         if: github.event_name == 'pull_request'
@@ -50,11 +50,11 @@ jobs:
 
       # Generated code is committed so editors and gopls work without a build
       # step; these fail if what is committed is not what the inputs produce.
-      - name: Check the generated code is current
+      - name: Check the generated clients are current
         run: bunx nx run proto:check-generated
 
       - name: Check the generated queries are current
-        run: bunx nx run postgres:check-generated
+        run: bunx nx run db:check-generated
 
   go:
     name: Go
@@ -82,11 +82,12 @@ jobs:
             go.sum
             tools/go.sum
 
-      - name: Verify the migrations apply from an empty database
-        run: |
-          go tool goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
-          go tool goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" down-to 0
-          go tool goose -dir libs/postgres/migrations postgres "$TEST_DATABASE_URL" up
+      # The module has to build without the workspace, because the container
+      # image and any consumer of it build it that way.
+      - name: Build without the tools workspace
+        env:
+          GOWORK: "off"
+        run: go build ./...
 
       - run: go vet ./...
 
@@ -94,6 +95,8 @@ jobs:
       # run the same version.
       - run: go tool golangci-lint run
 
+      # The slices' schemas are applied at startup, in dependency order, so the
+      # migrations are covered by every test that touches the database.
       - name: Test
         run: go test -race -count=1 ./...
 
@@ -109,41 +112,27 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      # Types are regenerated from the committed specification and the build
-      # type-checks against them, so a client that has drifted fails here.
+      # The client is generated from the committed protos and the application
+      # type-checks against it, so a client that has drifted fails here.
       - name: Build
         run: bunx nx run web:build
 
-  images:
-    name: Container images
+      - name: Test
+        run: bunx nx run web:test
+
+  image:
+    name: Container image
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3
 
-      - name: Build the api image
+      # One image: the web application is built and embedded into the binary
+      # that serves it.
+      - name: Build the image
         uses: docker/build-push-action@v6
         with:
           context: .
-          build-args: APP=api
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build the importer image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          build-args: APP=importer
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build the web image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/web/Dockerfile
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max

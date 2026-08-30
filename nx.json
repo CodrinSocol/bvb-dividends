@@ -1,29 +1,45 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "cli": {
+    "packageManager": "bun"
+  },
   "namedInputs": {
-    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
     "sharedGlobals": [
       "{workspaceRoot}/go.mod",
       "{workspaceRoot}/go.sum",
+      "{workspaceRoot}/go.work",
+      "{workspaceRoot}/tools/go.mod",
       "{workspaceRoot}/.golangci.yml"
     ],
-    "go": ["{projectRoot}/**/*.go", "sharedGlobals"]
+    "go": [
+      "{workspaceRoot}/**/*.go",
+      "sharedGlobals"
+    ]
   },
   "targetDefaults": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["go"],
+      "dependsOn": [
+        "^build"
+      ],
       "cache": true
     },
     "test": {
-      "dependsOn": ["^build"],
-      "inputs": ["go", "^go"],
+      "inputs": [
+        "go",
+        "^go"
+      ],
       "cache": true
     },
     "lint": {
-      "inputs": ["go"],
-      "cache": true
+      "dependsOn": [
+        "lint:*"
+      ]
     }
   },
-  "defaultBase": "main"
+  "defaultBase": "main",
+  "analytics": false
 }

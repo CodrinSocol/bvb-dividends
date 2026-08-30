@@ -4,13 +4,15 @@
   "projectType": "library",
   "sourceRoot": "api/proto/bvb-dividends",
   "targets": {
-    "lint": {
+    "lint:proto:buf": {
       "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}",
-        "commands": ["go tool buf lint", "./scripts/api-lint.sh"],
-        "parallel": false
-      },
+      "options": { "cwd": "{workspaceRoot}", "command": "go tool buf lint" },
+      "inputs": ["{projectRoot}/**/*.proto", "{workspaceRoot}/buf.yaml", "{workspaceRoot}/buf.lock"],
+      "cache": true
+    },
+    "lint:proto:api": {
+      "executor": "nx:run-commands",
+      "options": { "cwd": "{workspaceRoot}", "command": "bash ./scripts/api-lint.sh" },
       "inputs": [
         "{projectRoot}/**/*.proto",
         "{workspaceRoot}/buf.yaml",
@@ -19,6 +21,10 @@
       ],
       "cache": true
     },
+    "lint:proto": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint:proto:buf", "lint:proto:api"]
+    },
     "breaking": {
       "executor": "nx:run-commands",
       "options": {
@@ -26,12 +32,9 @@
         "command": "go tool buf breaking --against '.git#branch=main'"
       }
     },
-    "generate": {
+    "build:proto": {
       "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}",
-        "command": "go tool buf generate"
-      },
+      "options": { "cwd": "{workspaceRoot}", "command": "go tool buf generate" },
       "inputs": [
         "{projectRoot}/**/*.proto",
         "{workspaceRoot}/buf.gen.yaml",
@@ -47,7 +50,7 @@
     },
     "check-generated": {
       "executor": "nx:run-commands",
-      "dependsOn": ["generate"],
+      "dependsOn": ["build:proto"],
       "options": {
         "cwd": "{workspaceRoot}",
         "command": "git diff --exit-code -- libs/go/gen libs/ts/gen api/proto/gen"
