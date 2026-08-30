@@ -2,11 +2,13 @@ package app
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"slices"
 
 	"github.com/cockroachdb/errors"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 
 	"github.com/CodrinSocol/bvb-dividends-ro/internal/common/healthcheck"
 	"github.com/CodrinSocol/bvb-dividends-ro/internal/common/logging"
@@ -31,11 +33,26 @@ import (
 //	)),
 type Interface any
 
+// fxLogger routes the dependency graph's own events into the application log,
+// at debug level.
+//
+// Left alone, fx narrates every constructor it runs on stdout in a format of
+// its own, which is noise beside the structured log the service writes and
+// useless in front of a one-shot import. At debug level it is still there when
+// a wiring problem needs it.
+func fxLogger(log *slog.Logger) fxevent.Logger {
+	logger := &fxevent.SlogLogger{Logger: log.WithGroup("fx")}
+	logger.UseLogLevel(slog.LevelDebug)
+
+	return logger
+}
+
 // core is what every run of the binary needs, whether it serves or not.
 func core() []fx.Option {
 	return []fx.Option{
 		fx.Provide(newContext),
 		fx.Provide(logging.NewLogger),
+		fx.WithLogger(fxLogger),
 		fx.Provide(fx.Annotate(
 			newDB,
 			fx.ParamTags(``, ``, `group:"pgnamespaces"`),

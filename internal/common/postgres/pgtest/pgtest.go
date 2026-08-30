@@ -5,6 +5,7 @@
 package pgtest
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"os"
@@ -49,11 +50,45 @@ func NewDB(t *testing.T, namespaces ...*postgres.Namespace) *postgres.DB {
 	}
 	t.Cleanup(func() { _ = db.Shutdown(t.Context()) })
 
+	lockDatabase(t, db)
+
 	if err := db.Start(t.Context()); err != nil {
 		t.Fatalf("migrate the test database: %v", err)
 	}
 
 	return db
+}
+
+// lockName identifies the advisory lock the integration tests serialise on.
+// The value is arbitrary; only its being the same everywhere matters.
+const lockName = 7_083_940_112
+
+// lockDatabase takes an advisory lock for the duration of the test.
+//
+// `go test ./...` runs packages in parallel, and every slice's integration
+// tests point at the same database and truncate between cases, so without
+// this they empty each other's tables half-way through a run. The lock is held
+// on one connection and released when the test ends.
+func lockDatabase(t *testing.T, db *postgres.DB) {
+	t.Helper()
+
+	conn, err := db.Pool().Acquire(t.Context())
+	if err != nil {
+		t.Fatalf("acquire a connection for the test lock: %v", err)
+	}
+
+	if _, err := conn.Exec(t.Context(), "SELECT pg_advisory_lock($1)", lockName); err != nil {
+		conn.Release()
+		t.Fatalf("take the test lock: %v", err)
+	}
+
+	t.Cleanup(func() {
+		defer conn.Release()
+
+		if _, err := conn.Exec(context.WithoutCancel(t.Context()), "SELECT pg_advisory_unlock($1)", lockName); err != nil {
+			t.Errorf("release the test lock: %v", err)
+		}
+	})
 }
 
 // Truncate empties the given tables, so each case starts from a known state.
