@@ -1,6 +1,5 @@
 # Node / Bun
 node_modules/
-dist/
 *.tsbuildinfo
 
 # Nx
@@ -28,6 +27,8 @@ dist/
 !/web/dist/.gitkeep
 
 # Go build output. `go build ./...` writes an executable named after the
-# package into the working directory.
+# package into the working directory; the Nx target for cmd/bvb-dividends
+# writes it under the workspace-root dist/ instead.
 /bvb-dividends
 /bvb-dividends.exe
+/dist/
