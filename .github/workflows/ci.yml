@@ -47,6 +47,14 @@ jobs:
       - name: Lint the API against the AIPs
         run: bunx nx run proto:lint:proto
 
+      # buf's `.git#branch=main` input clones the local .git directory and
+      # checks out a *local* branch named main; checkout leaves HEAD detached
+      # and main only reachable as the remote-tracking origin/main, so buf
+      # can't find it without this.
+      - name: Create a local main branch for buf breaking
+        if: github.event_name == 'pull_request'
+        run: git fetch origin main:main
+
       - name: Check for breaking API changes
         if: github.event_name == 'pull_request'
         run: bunx nx run proto:breaking
