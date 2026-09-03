@@ -28,7 +28,10 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          # go.work (via tools/go.mod) pins a newer toolchain than the
+          # application's own go.mod, and every step below runs with the
+          # workspace enabled, so the version has to come from go.work.
+          go-version-file: go.work
           cache-dependency-path: |
             go.sum
             tools/go.sum
@@ -43,6 +46,14 @@ jobs:
       # makes "AIP-compliant" a property of the build rather than a claim.
       - name: Lint the API against the AIPs
         run: bunx nx run proto:lint:proto
+
+      # buf's `.git#branch=main` input clones the local .git directory and
+      # checks out a *local* branch named main; checkout leaves HEAD detached
+      # and main only reachable as the remote-tracking origin/main, so buf
+      # can't find it without this.
+      - name: Create a local main branch for buf breaking
+        if: github.event_name == 'pull_request'
+        run: git fetch origin main:main
 
       - name: Check for breaking API changes
         if: github.event_name == 'pull_request'
@@ -77,7 +88,11 @@ jobs:
 
       - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          # go.work (via tools/go.mod) pins a newer toolchain than the
+          # application's own go.mod; go vet, golangci-lint and go test below
+          # all run with the workspace enabled, so the version has to come
+          # from go.work.
+          go-version-file: go.work
           cache-dependency-path: |
             go.sum
             tools/go.sum
