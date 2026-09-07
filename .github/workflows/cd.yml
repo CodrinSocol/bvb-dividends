@@ -1,0 +1,51 @@
+name: CD
+on:
+  push:
+    branches: [main]
+
+# A migration must never be cancelled mid-run, so a second push waits for the
+# first to finish rather than racing or pre-empting it.
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Migrate the database
+    runs-on: ubuntu-24.04
+    # POSTGRES_HOST, POSTGRES_USER and POSTGRES_PASSWORD are secrets on this
+    # environment; the rest of the app's configuration is environment
+    # variables on it, both set in the repo's GitHub Environment settings
+    # rather than here, so a rotated credential or endpoint never needs a
+    # workflow change.
+    environment: prod
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          # go.work (via tools/go.mod) pins a newer toolchain than the
+          # application's own go.mod; `go run` below is loaded with the
+          # workspace enabled, so the version has to come from go.work.
+          go-version-file: go.work
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+
+      # `migrate` applies every slice's schema, in dependency order, and exits;
+      # the service applies the same migrations on startup, so this is only
+      # needed for a release step run ahead of a deploy. It forces migrations
+      # on regardless of POSTGRES_MIGRATIONS_APPLY, so that variable is not
+      # passed here.
+      - name: Apply migrations
+        env:
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_SSLMODE: ${{ vars.POSTGRES_SSLMODE }}
+          BVB_ENDPOINT: ${{ vars.BVB_ENDPOINT }}
+          BVB_TIMEOUT: ${{ vars.BVB_TIMEOUT }}
+          BVB_ATTEMPTS: ${{ vars.BVB_ATTEMPTS }}
+        run: go run ./cmd/bvb-dividends migrate
